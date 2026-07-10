@@ -1,22 +1,38 @@
-## Battleship_IWSIM21-07
+# Battleship Game - Enterprise Software Engineering
 
-Si surge algún error recomendamos el uso de **JDK: 17**.
+A modular Java implementation of the classic Battleship game, developed for the Software Engineering curriculum at Universidad Politécnica de Madrid (UPM - ETSISI). The project focuses on Component-Based Software Architecture and strict separation of concerns.
 
-**CLONANDO EL REPOSITORIO**:
-El sistema contiene **tres usuarios ya registrados**, todos con **una partida ganada**:
+## Tech Stack & Environment
+* **Language:** Java 17
+* **Build System:** Maven
+* **Architecture:** Layered & Component-Based Architecture (Core module: `construccion`)
+* **Dependency Management:** Multi-source resolution handling local artifacts via `/libs`
 
-- **alvaro@alumnos.upm.es**
-    - No es administrador.
-    - Usuario normal con historial de una partida ganada (26 puntos).
+## Project Structure
+* `/construccion`: Primary source code, business logic, and UI/Controller layers.
+* `/libs`: Local repository housing custom dependencies (`etsisi2:externals`).
+* `pom.xml`: Root Maven configuration managing build lifecycles.
 
-- **adrian@alumnos.upm.es**
-    - No es administrador.
-    - Usuario normal con historial de una partida ganada (58 puntos).
+## Key Features
+* **Game Simulation:** Turn-based multiplayer state machinery with coordinate validation.
+* **Role-Based Access Control (RBAC):** Distinct privileges separating standard players from administrators.
+* **Administrative Analytics:** Admin accounts can monitor global system metrics and player logs.
 
-- **admin@upm.es**
-    - Es administrador. Historial de una partida ganada (26 puntos).
-    - Tiene acceso completo a todas las funciones, incluyendo visualizar las puntuaciones de todos los usuarios.
+## Sandbox Accounts
+The environment contains three seeded profiles for evaluation purposes:
+* **Standard Player 1:** alvaro@alumnos.upm.es (Non-admin, 26 points)
+* **Standard Player 2:** adrian@alumnos.upm.es (Non-admin, 58 points)
+* **System Administrator:** admin@upm.es (Full Admin Privileges)
 
-Puedes usar estos usuarios para pruebas rápidas o demostraciones.
+Note: If downloading the project as a .zip archive, the local embedded database will initialize empty.
 
-**IMPORTANTE: Si descargas el archivo .zip del repositorio, la base de datos estará vacía.**
+## Build and Installation
+
+### Prerequisites
+* Java Development Kit (JDK) 17
+* Apache Maven 3.8+
+
+### Local Setup
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/alvarofdeza/Battleship_IWSIM21-07.git](https://github.com/alvarofdeza/Battleship_IWSIM21-07.git)
