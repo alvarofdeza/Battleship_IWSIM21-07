@@ -1,6 +1,6 @@
 # Battleship Game - Enterprise Software Engineering
 
-A modular Java implementation of the classic Battleship game, developed for the Software Engineering curriculum at Universidad Politécnica de Madrid (UPM - ETSISI). The project focuses on Component-Based Software Architecture and strict separation of concerns.
+A modular Java implementation of the classic Battleship game, developed for the Fundamentals of Software Engineering (FIS) course at Universidad Politécnica de Madrid (UPM - ETSISI). The project focuses on Component-Based Software Architecture and strict separation of concerns.
 
 ## Tech Stack & Environment
 * **Language:** Java 17
