@@ -8,7 +8,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **101** (59 core + 42 backend) |
+| **Total de Tests Automatizados** | **105** (59 core + 46 backend) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
@@ -56,7 +56,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Clase de Test | Casos de Prueba Verificados | Metodologia | Estado |
 | :--- | :--- | :--- | :---: |
-| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y despacho de OTP; rechazo de usuario o email duplicado con error 400; login con credenciales correctas (200 OK) e incorrectas (401); consulta de `/me` con JWT y rechazo 403 sin token; verificacion de correo mediante OTP de 6 digitos; rechazo de codigo OTP invalido o expirado; reenvio de OTP; rechazo de verificacion para email ya verificado (400); rechazo de OTP expirado (400); retorno 404 ante usuario inexistente en reenvio; cambio seguro de password con validacion BCrypt y rechazo de contraseña actual incorrecta. | Integracion MockMvc / Spring Security | [PASS] (14/14) |
+| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y despacho de OTP; rechazo de usuario duplicado con email distinto (400); rechazo de email duplicado con username distinto (400); rechazo de contrasena menor a 6 caracteres (400); rechazo de formato de email invalido (400); login con credenciales correctas (200 OK) e incorrectas (401); consulta de `/me` con JWT y rechazo 403 sin token; verificacion de correo mediante OTP de 6 digitos; rechazo de codigo OTP invalido o expirado; reenvio de OTP; rechazo de verificacion para email ya verificado (400); rechazo de OTP expirado (400); retorno 404 ante usuario inexistente en reenvio; cambio seguro de password con validacion BCrypt; rechazo de contrasena actual incorrecta; rechazo de nueva contrasena menor a 6 caracteres (400). | Integracion MockMvc / Spring Security | [PASS] (18/18) |
 | `GameControllerIntegrationTest` | Creacion de partida vs bot con codigo 201; disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10); rechazo de disparos duplicados; combate en HARD contra IA experta (`AI-Expert`); error 404 ante partidas inexistentes; ejecucion en Modo Invitado en memoria sin persistir en BD; rechazo 403 al intentar reclamar sin JWT; rechazo de reclamacion para partida no finalizada; error 404 ante reclamacion de sesion inexistente. | Integracion MockMvc / Motor Dominio | [PASS] (10/10) |
 | `LeaderboardControllerIntegrationTest` | Consulta publica del ranking de mejores partidas individuales (`/matches`) con badges de victoria y derrota; consulta del ranking de oficiales ordenado por suma de puntos (`/players`); consulta de Top 10 personal del oficial (`/me/matches`); historial cronologico de ultimas 10 batallas (`/me/recent`); estadisticas de carrera militar y rango naval (`/me/stats`); verificacion de persistencia limpia y sembrado benchmark inicial. | Integracion MockMvc / JPA | [PASS] (7/7) |
 | `NavalRankCalculatorTest` | Validacion de todos los umbrales de rango naval (Cadete Naval <= 2500, Alferez de Fragata <= 7500, Teniente de Navio <= 15000, Capitan de Navio <= 30000, Almirante de la Flota > 30000) y proteccion ante valores negativos. | Unitaria de Dominio | [PASS] (5/5) |
@@ -82,7 +82,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Job de Pipeline | Pasos Ejecutados | Entorno | Disparador | Estado |
 | :--- | :--- | :--- | :--- | :---: |
-| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (101 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
+| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (105 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 | `frontend-validation` | Checkout, Setup Node.js 20, Cache npm, `npm ci`, `npx tsc --noEmit`, `npm run build`. | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 
 ---

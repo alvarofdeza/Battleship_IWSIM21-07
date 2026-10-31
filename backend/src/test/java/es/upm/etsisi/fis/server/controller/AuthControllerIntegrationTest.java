@@ -50,14 +50,53 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Rechazar registro de usuario duplicado con error 500/400")
-    void testRegisterDuplicateFails() throws Exception {
-        RegisterRequest request = new RegisterRequest("admin", "admin@upm.es", "password123");
+    @DisplayName("Rechazar registro con nombre de usuario duplicado aunque el correo sea nuevo")
+    void testRegisterDuplicateUsernameFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("admin", "new_email_99@battleship.com", "password123");
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Username 'admin' is already taken."));
+    }
+
+    @Test
+    @DisplayName("Rechazar registro con correo electronico duplicado aunque el username sea nuevo")
+    void testRegisterDuplicateEmailFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("cadetunique", "admin@upm.es", "password123");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Email 'admin@upm.es' is already registered."));
+    }
+
+    @Test
+    @DisplayName("Rechazar registro con contrasena menor a 6 caracteres por validacion DTO")
+    void testRegisterPasswordTooShortFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("cadetshort", "cadetshort@battleship.com", "12345");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Failed"))
+                .andExpect(jsonPath("$.details.password").value("Password must be at least 6 characters"));
+    }
+
+    @Test
+    @DisplayName("Rechazar registro con formato de correo invalido por validacion DTO")
+    void testRegisterInvalidEmailFormatFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("cadetinvalid", "not-a-valid-email", "password123");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Failed"))
+                .andExpect(jsonPath("$.details.email").value("Invalid email format"));
     }
 
     @Test
@@ -160,6 +199,28 @@ class AuthControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changeReq)))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("Cambio de contrasena con nueva contrasena menor a 6 caracteres es rechazado")
+    void testChangePasswordTooShortFails() throws Exception {
+        LoginRequest login = new LoginRequest("admin", "admin123");
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
+
+        ChangePasswordRequest changeReq = new ChangePasswordRequest("admin123", "123");
+        mockMvc.perform(put("/api/v1/auth/password")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(changeReq)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Failed"))
+                .andExpect(jsonPath("$.details.newPassword").value("New password must be at least 6 characters long"));
     }
 
     @Test
