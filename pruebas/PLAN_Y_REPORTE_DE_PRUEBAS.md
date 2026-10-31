@@ -8,11 +8,11 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **78** (58 core + 20 backend) |
+| **Total de Tests Automatizados** | **91** (59 core + 32 backend) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
-| **Tiempo de Ejecucion Total** | **~8.2 segundos** |
+| **Tiempo de Ejecucion Total** | **~10.1 segundos** |
 | **Frameworks de Testing** | JUnit 5 (Jupiter 5.10.2), Spring Boot Starter Test, Spring Security Test, MockMvc, Mockito 5.11, AssertJ 3.25 |
 | **Herramienta de Compilacion** | Apache Maven Wrapper (`./mvnw` / `mvnw.cmd`) |
 
@@ -41,14 +41,14 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 ---
 
-### 2.3 Capa de Controladores (`es.upm.etsisi.fis.controller`)
+### 2.3 Capa de Controladores y Utilidades (`es.upm.etsisi.fis.controller` y `servidor`)
 
 | Clase de Test | Casos de Prueba Verificados | Metodologia | Estado |
 | :--- | :--- | :--- | :---: |
 | `AuthControllerTest` | Instancia Singleton, lectura de lista negra desde resources (`list_raw.txt`), validacion estricta de nombres de usuario (longitud, alfanumericos, nombres restringidos). | Unitaria / Validacion | [PASS] (4/4) |
 | `DataControllerTest` | Inicializacion de sesion mock para pruebas (`initForTest`), operaciones de persistencia (`saveOrUpdate`, `delete`, `initializeUserRelations`). | Unitaria / Mock | [PASS] (3/3) |
 | `UserControllerTest` | Alta y baja de usuarios, busqueda por ID, listado general de usuarios y claves, caso de usuario inexistente. | Unitaria | [PASS] (4/4) |
-| `ExternalLDAPTest` | Instanciacion exitosa, ejecucion segura de `LoginLDAP()` en modo no interactivo/headless retornando null sin excepciones y conmutacion de estado interactivo. | Unitaria / Desacoplamiento Legacy | [PASS] (2/2) |
+| `ExternalLDAPTest` | Instanciacion exitosa, ejecucion segura de `LoginLDAP()` en modo no interactivo/headless retornando null sin excepciones y conmutacion de estado interactivo. | Unitaria / Desacoplamiento Legacy | [PASS] (3/3) |
 
 ---
 
@@ -56,9 +56,9 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Clase de Test | Casos de Prueba Verificados | Metodologia | Estado |
 | :--- | :--- | :--- | :---: |
-| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y emision de JWT; rechazo de usuario o email duplicado con error 400; inicio de sesion con credenciales correctas (200 OK); rechazo de credenciales erroneas con error 401; acceso al endpoint protegido `/api/v1/auth/me` con cabecera `Authorization: Bearer <token>`; rechazo estricto con codigo 403 Forbidden al intentar acceder sin token. | Integracion MockMvc / Spring Security | [PASS] (6/6) |
-| `GameControllerIntegrationTest` | Creacion de partida contra bot con codigo 201 y generacion de tableros (flota propia vs niebla de guerra enemiga); ejecucion de disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10) con error 400; rechazo de disparos duplicados sobre la misma celda con error 400; creacion de partida en dificultad HARD contra la IA experta (`AI-Expert`); devolucion de error 404 Not Found ante partidas inexistentes. | Integracion MockMvc / Motor Dominio | [PASS] (6/6) |
-| `LeaderboardControllerIntegrationTest` | Consulta autenticada de las mejores puntuaciones personales del usuario en sesion; consulta publica/autenticada del ranking global de jugadores ordenado descendentemente por puntuacion. | Integracion MockMvc / JPA | [PASS] (2/2) |
+| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y despacho de OTP; rechazo de usuario o email duplicado con error 400; login con credenciales correctas (200 OK) e incorrectas (401); consulta de `/me` con JWT y rechazo 403 sin token; verificacion de correo mediante OTP de 6 digitos; rechazo de codigo OTP invalido o expirado; reenvio de OTP; cambio seguro de password con validacion BCrypt y rechazo de contraseña actual incorrecta. | Integracion MockMvc / Spring Security | [PASS] (11/11) |
+| `GameControllerIntegrationTest` | Creacion de partida vs bot con codigo 201; disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10); rechazo de disparos duplicados; combate en HARD contra IA experta (`AI-Expert`); error 404 ante partidas inexistentes; ejecucion en Modo Invitado en memoria sin persistir en BD; reclamacion exitosa (`POST /claim`) de partida de invitado tras autenticacion. | Integracion MockMvc / Motor Dominio | [PASS] (9/9) |
+| `LeaderboardControllerIntegrationTest` | Consulta publica del ranking de mejores partidas individuales (`/matches`) con badges de victoria y derrota; consulta del ranking de oficiales ordenado por suma de puntos (`/players`); consulta de Top 10 personal del oficial (`/me/matches`); historial de ultimas 10 batallas (`/me/recent`); estadisticas de carrera militar y rango naval (`/me/stats`); verificacion de persistencia limpia y sembrado benchmark inicial. | Integracion MockMvc / JPA | [PASS] (6/6) |
 | `JwtServiceTest` | Emision de tokens JWT firmados con algoritmo HMAC-SHA256, inclusion de claims y verificacion de vigencia temporal; validacion estricta de rechazo ante firmas manipuladas o tokens expirados. | Unitaria de Criptografia | [PASS] (2/2) |
 | `DatabaseConfigTest` | Verificacion de DataSource por defecto sin entorno; conversion y sanitizacion de URLs cloud con protocolo `postgres://` y credenciales incrustadas a formato JDBC; preservacion de cadenas `jdbc:postgresql://`. | Unitaria de Infraestructura Cloud | [PASS] (3/3) |
 | `HealthControllerIntegrationTest` | Verificacion de endpoint `/healthz` devolviendo codigo 200 OK, servicio identificado y estado UP sin requerir cabeceras de autorizacion. | Integracion MockMvc / Cloud Health | [PASS] (1/1) |
@@ -69,9 +69,11 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Suite / Proceso | Casos de Prueba y Validacion | Herramienta | Estado |
 | :--- | :--- | :--- | :---: |
-| Verificacion de Tipos TypeScript | Comprobacion estricta sin errores de tipado (`noImplicitAny`, interfaces de dominio, DTOs de API). | TypeScript Compiler (`tsc`) | [PASS] |
-| Build de Produccion Next.js | Compilacion de rutas estaticas, empaquetado de componentes React 19 y optimizacion Turbopack. | Next.js Build Pipeline | [PASS] |
-| Flujo de Control de Acceso (Auth Guard) | Verificacion de bloqueo previo a despliegue sin credenciales: sonido de alarma naval, toast descriptivo y apertura forzada de `AuthModal`. | React State Machine & API Client | [PASS] |
+| Verificacion de Tipos TypeScript | Comprobacion estricta sin errores de tipado (`noImplicitAny`, interfaces de dominio, DTOs de API enriquecidos con puntuacion y ranking). | TypeScript Compiler (`tsc`) | [PASS] |
+| Build de Produccion Next.js | Compilacion de rutas estaticas, empaquetado de componentes React 19 y optimizacion Turbopack sin advertencias. | Next.js Build Pipeline | [PASS] |
+| Modo Invitado & Reclamacion Post-Combate | Inicio inmediato de combate sin barrera de login; calculo de puntuacion en pantalla final con desglose y modal de reclamacion vinculado a registro/login. | React State Machine & API Client | [PASS] |
+| Verificacion OTP de 6 Digitos | Componente de 6 cajas de entrada militar con navegacion automatica de cursor, pegado directo de codigo PIN y llamada a Resend API. | Componente `AuthModal.tsx` | [PASS] |
+| Expediente de Oficial (Profile) | Despliegue de modal de oficial con rango militar segun puntos de carrera, resumen de victorias/derrotas, Top 10 personal, ultimas 10 batallas y formulario de cambio de credencial. | Componente `ProfileModal.tsx` | [PASS] |
 
 ---
 
@@ -79,7 +81,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Job de Pipeline | Pasos Ejecutados | Entorno | Disparador | Estado |
 | :--- | :--- | :--- | :--- | :---: |
-| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (78 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
+| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (91 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 | `frontend-validation` | Checkout, Setup Node.js 20, Cache npm, `npm ci`, `npx tsc --noEmit`, `npm run build`. | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 
 ---

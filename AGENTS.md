@@ -20,7 +20,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
    * **Documentacion y JavaDoc 100% en espanol:** Especificaciones técnicas en Markdown, bloques JavaDoc en clases e interfaces, y comentarios explicativos de algoritmos.
 
 3. **Suite de Tests Automatizada al 100%:**
-   * Cobertura de pruebas unitarias y de integración para toda la lógica implementada (78 tests automatizados: 58 en core y 20 en backend).
+   * Cobertura de pruebas unitarias y de integración para toda la lógica implementada (91 tests automatizados: 59 en core y 32 en backend).
    * La suite de tests de Maven debe ejecutarse sin un solo fallo ni error (`BUILD SUCCESS`).
    * No se permiten dependencias de tests basadas en trucos de reflexión frágiles ni estados sucios entre ejecuciones.
 
@@ -46,50 +46,13 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 ## 2. Master Roadmap de Hitos
 
-### [COMPLETADO] Hito 1: Motor de Dominio Independiente, Limpieza y Refactorizacion (battleship-core)
-*Objetivo:* Eliminar la dependencia de los JAR docentes (`Battleship-1.11.jar`), construir un motor de juego puro en Java 17/22 con Clean Architecture, algoritmos de IA (Basic, Hunt & Target, Heatmap probabilistico x50), refactorizacion 100% al ingles y tests unitarios automatizados.
+### [COMPLETADO] Fundamentos y Evolucion Arquitectonica (Hitos 1 a 4)
+*Resumen de construccion del nucleo, backend enterprise, interfaz tactica y DevOps cloud:*
 
-- [x] **Ingenieria Inversa y Desacoplamiento:** Extraccion de contratos e interfaces del JAR docente y sustitucion total de dependencias obsoletas.
-- [x] **Motor de Dominio Core (Clean Architecture):** Tablero 10x10, validacion de impactos, naves especializadas, prevencion de colisiones y niebla de guerra.
-- [x] **Motor de Inteligencia Artificial (Strategy Pattern):** Niveles Facil (aleatorio), Normal (paridad de ajedrez y caza ortogonal) y Experto (superposicion probabilistica matricial).
-- [x] **Estandarizacion Linguistica y Build:** Codigo 100% en ingles, JavaDoc en espanol, Maven Wrapper y 56 tests unitarios en verde.
-
----
-
-### [COMPLETADO] Hito 2: Backend Enterprise con Spring Boot 3 & REST API
-*Objetivo:* Transformar la aplicacion monolitica en un backend desacoplado, modular y moderno con Spring Boot 3, Spring Data JPA, JWT y documentacion interactiva OpenAPI.
-
-- [x] **Arquitectura Multi-Modulo Maven:** Modulo `battleship-backend` configurado con Spring Boot 3.2.5 BOM y Java 17 aislando las dependencias legacy.
-- [x] **Autenticacion y Seguridad Moderna (Spring Security 6 + JWT):** Seguridad stateless basada en tokens Bearer JWT firmados con HMAC-SHA256, `BCryptPasswordEncoder` y politica CORS para Next.js en Vercel.
-- [x] **Persistencia Empresarial (Spring Data JPA):** Entidades relacionales (`UserEntity`, `GameRecordEntity`, `MoveRecordEntity`, `LeaderboardScoreEntity`) con PostgreSQL y H2.
-- [x] **Controladores REST y Manejador Global de Errores:** Endpoints de autenticacion (`/api/v1/auth`), combate vs IA (`/api/v1/games`) y clasificaciones (`/api/v1/leaderboard`).
-- [x] **Documentacion Interactiva OpenAPI 3 / Swagger UI:** Interfaz Swagger disponible en `/swagger-ui.html` y esquema JSON en `/v3/api-docs`.
-- [x] **Suite de Pruebas de Integracion MockMvc:** Cobertura de flujos de combate, niebla de guerra, seguridad y persistencia.
-
----
-
-### [COMPLETADO] Hito 3: Frontend Full-Stack Moderno (Web UI con Next.js & Tailwind CSS)
-*Objetivo:* Crear una interfaz web visual de vanguardia, totalmente reactiva, interactiva y responsive, conectada a la API REST de Spring Boot.
-
-- [x] **Aplicacion Next.js 16 (App Router, Turbopack, React 19, Tailwind CSS v4, Lucide Icons).**
-- [x] **Diseno UI/UX Tactico Naval:** Estetica militar retro CRT (Combat Information Center) con paleta US Navy y Share Tech Mono.
-- [x] **Dique Seco Interactivo:** Colocacion de flota con rotacion por atajos de teclado (`R` / Espacio), deteccion de colisiones y auto-despliegue aleatorio.
-- [x] **Tablero de Combate Reactivo:** Niebla de guerra, animaciones de radar, telemetria teletipo e inspector de heatmap en tiempo real.
-- [x] **Sintetizador de Audio Nativo:** Web Audio API con osciladores de sonido militar sin archivos externos (pings de sonar, detonaciones, agua, fanfarrias).
-- [x] **Escalafon de Oficiales (Admiralty Roll):** Visualizacion de records mundiales y personales.
-
----
-
-### [COMPLETADO] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
-*Objetivo:* Publicar la plataforma completa en internet con Live Demo publica de maximo impacto para portfolio.
-
-- [x] **Contenedores Docker Multi-Stage:** Empaquetado ligero de Spring Boot (Temurin 17 JRE Alpine) y Next.js 16 (Standalone Node 20 Alpine) con usuarios no privilegiados.
-- [x] **Cluster Local Docker Compose:** Orquestacion de PostgreSQL 16, backend y frontend con healthcheck y volumenes persistentes.
-- [x] **Desacoplamiento Total Legacy:** Sustitucion de `externals-5.1.jar` por `ExternalLDAP.java` autonomo con deteccion headless y suite unitaria.
-- [x] **Endpoint de Salud Operativo (`/healthz`):** `HealthController` con pase en `SecurityConfig` para orquestadores y pings keep-alive.
-- [x] **Infraestructura Cloud Permanente Gratuita:** Base de datos en Neon PostgreSQL (Frankfurt), backend en Render y frontend en Vercel Edge CDN.
-- [x] **Pipeline CI/CD (GitHub Actions):** Validacion de 78 tests de Maven y build estricto de Next.js en cada push a `main`.
-- [x] **Gestion de Cuota de Computo (750h/mes):** Monitor keep-alive en UptimeRobot (`/healthz`) con conmutador de pausa de un solo clic.
+- [x] **Motor de Dominio Puro (battleship-core):** Clean Architecture en Java 17/22, tablero 10x10, niebla de guerra, jerarquia de buques de guerra, algoritmos de IA (Basic, Hunt & Target, Heatmap probabilistico x50) y tests unitarios.
+- [x] **Backend Enterprise (battleship-backend):** Spring Boot 3.2.5, Spring Security 6 stateless con JWT, Spring Data JPA con PostgreSQL, documentacion interactiva OpenAPI 3 / Swagger UI y tests de integracion MockMvc.
+- [x] **Frontend Web Tactico (frontend):** Next.js 16 (App Router, Turbopack, React 19, Tailwind CSS v4), estetica militar CRT (Combat Information Center), dique seco de colocacion de flota, tablero reactivo y sintetizador de audio nativo Web Audio API.
+- [x] **DevOps, Docker & Cloud:** Dockerfiles multi-stage con usuarios no privilegiados, Docker Compose local, base de datos Neon PostgreSQL (Frankfurt), backend en Render, frontend en Vercel Edge CDN, pipeline CI/CD en GitHub Actions y monitor keep-alive en UptimeRobot (`/healthz`).
 
 ---
 
@@ -99,7 +62,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 - [x] **Fase 1: Motor de Puntuacion Multidimensional y Endpoints de Doble Ranking en Backend:**
   - [x] Implementacion de la formula de victoria: `((1000 + bonus_shots) * mult_diff) + bonus_time`.
   - [x] Sistema de puntos de consolacion en derrotas completas por barcos enemigos hundidos (Carrier 250, Battleship 200, Submarine 150, PatrolBoat 100) multiplicado por dificultad.
-  - [x] Blindaje anti-farming: abandonos computan con 0 puntos; los puntos de consolacion exigen resolucion completa del combate.
+  - [x] Blindaje anti-farming: abandonos computan con 0 puntos; los puntos de consolacion exigen resolucion completa del combate (al menos 4 movimientos y destruccion mutua).
   - [x] Ampliacion del modelo de datos con `difficulty`, `durationSeconds`, `movesCount`, `result` (`VICTORY`/`DEFEAT`) y `points`.
   - [x] Endpoints de doble ranking en `LeaderboardController`:
     - `GET /api/v1/leaderboard/matches`: Top 10 mejores partidas individuales.
@@ -111,20 +74,20 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
   - [x] Endpoint de gestion de credenciales en `AuthController`: `PUT /api/v1/auth/password` con comprobacion de contrasena actual y validacion BCrypt.
 
 - [x] **Fase 2: Modo Invitado (Guest Mode) & Reclamacion Post-Combate:**
-  - [x] Eliminacion del bloque de credenciales de prueba en `AuthModal`.
+  - [x] Eliminacion del bloque obsoleto de credenciales de prueba en `AuthModal`.
   - [x] Generacion de partidas de invitado con identificador efimero en memoria sin persistir en base de datos.
   - [x] Pantalla de fin de partida militar con desglose de puntos y boton de reclamacion: *"Reclamar Puntos e Inscribirse"*.
   - [x] Endpoint `POST /api/v1/games/{id}/claim` para transferir la partida jugada como invitado a la cuenta del usuario tras login o registro.
 
 - [x] **Fase 3: Verificacion de Correo con Codigo OTP de 6 Digitos (Resend API):**
-  - [x] Integracion con la API de Resend para envio de correos transaccionales con plantilla tactica naval.
+  - [x] Integracion con la API de Resend para envio de correos transaccionales con plantilla tactica naval y mock offline para dev/CI.
   - [x] Generacion y validacion de codigos OTP de 6 digitos con expiracion a los 10 minutos.
-  - [x] Campo `email_verified` en `UserEntity` y endpoint de verificacion `POST /api/v1/auth/verify-email`.
+  - [x] Campos `email_verified`, `verification_otp` y `otp_expires_at` en `UserEntity` y endpoint `POST /api/v1/auth/verify-email`.
   - [x] Componente modal en el frontend con 6 casillas para introduccion del codigo PIN militar.
 
 - [x] **Fase 4: Interfaz Web: Doble Ranking en Admiralty Roll & Expediente de Oficial (Profile):**
   - [x] Conmutador en Admiralty Roll: *"Top Partidas"* vs *"Top Oficiales"* con insignias `VICTORY` y `DEFEAT`.
-  - [x] Nueva vista/pestana `Profile` (Expediente de Oficial):
+  - [x] Nueva vista/modal `Profile` (Expediente de Oficial):
     - Rango militar naval por puntos (Cadete, Alferez, Teniente, Capitan, Almirante de la Flota).
     - Estadisticas globales de carrera (Puntos totales, Victorias, Derrotas, Ratio de acierto).
     - Tablas de Top 10 personal y Ultimas 10 partidas.

@@ -226,7 +226,7 @@ flowchart TD
     subgraph ClientLayer ["Clientes Externos"]
         SWAGGER["Swagger UI / OpenAPI Console"]
         SPA["Frontend SPA (React / Next.js)"]
-        TESTS["MockMvc Test Suites"]
+        TESTS["MockMvc Test Suites (32 tests)"]
     end
 
     subgraph SecurityBoundary ["Filtro de Seguridad Spring Security"]
@@ -239,13 +239,16 @@ flowchart TD
         AC_REST["AuthController (/api/v1/auth)"]
         GC_REST["GameController (/api/v1/games)"]
         LC_REST["LeaderboardController (/api/v1/leaderboard)"]
+        HC_REST["HealthController (/healthz)"]
         EX_ADVICE["GlobalExceptionHandler (@RestControllerAdvice)"]
     end
 
-    subgraph BusinessServices ["Capa de Negocio (@Service)"]
+    subgraph BusinessServices ["Capa de Negocio (@Service & Utils)"]
         AUTH_SRV["AuthService"]
-        GAME_SRV["GameService"]
-        LEAD_SRV["LeaderboardService"]
+        GAME_SRV["GameService (Guest & Auth Sessions)"]
+        LEAD_SRV["LeaderboardService (Dual Ranking & Stats)"]
+        EMAIL_SRV["EmailService (Resend API / Offline Mock)"]
+        RANK_CALC["NavalRankCalculator (Rangos Navales)"]
     end
 
     subgraph CoreEngineModule ["Motor de Dominio (battleship-core)"]
@@ -261,13 +264,15 @@ flowchart TD
 
     subgraph DatabaseLayer ["Base de Datos"]
         H2_DB[(H2 In-Memory DB / Dev & Tests)]
-        PG_DB[(PostgreSQL / Production & Docker)]
+        PG_DB[(PostgreSQL 16 / Neon & Docker)]
     end
 
-    ClientLayer -->|Bearer JWT en Header| JWT_FILTER
+    ClientLayer -->|Bearer JWT en Header o Modo Invitado| JWT_FILTER
     JWT_FILTER --> JWT_SERVICE
     JWT_FILTER -->|SecurityContext| RestControllers
     RestControllers --> BusinessServices
+    AUTH_SRV --> EMAIL_SRV
+    LEAD_SRV --> RANK_CALC
     BusinessServices --> CoreEngineModule
     BusinessServices --> DataRepositories
     DataRepositories --> H2_DB
@@ -291,6 +296,9 @@ erDiagram
         String email UK
         String password
         String role
+        boolean emailVerified
+        String verificationOtp
+        LocalDateTime otpExpiresAt
         LocalDateTime createdAt
     }
 
@@ -300,7 +308,12 @@ erDiagram
         String player2Username
         String gameMode
         String aiDifficulty
+        String difficulty
         String status
+        String result
+        int movesCount
+        int durationSeconds
+        Long points
         String winnerUsername
         LocalDateTime createdAt
         LocalDateTime finishedAt
@@ -320,6 +333,10 @@ erDiagram
         Long id PK
         String playerUsername FK
         Long points
+        String difficulty
+        String result
+        int movesCount
+        int durationSeconds
         String gameId
         LocalDateTime achievedAt
     }
@@ -331,24 +348,32 @@ erDiagram
 
 | Metodo | Ruta | Descripcion | Autenticacion |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/register` | Registro de nuevo jugador | Publico |
+| `POST` | `/api/v1/auth/register` | Registro de nuevo oficial y despacho de codigo OTP | Publico |
+| `POST` | `/api/v1/auth/verify-email` | Validacion de codigo PIN militar de 6 digitos | Publico |
+| `POST` | `/api/v1/auth/resend-code` | Reenvio de nuevo codigo OTP a la bandeja de entrada | Publico |
 | `POST` | `/api/v1/auth/login` | Inicio de sesion y obtencion de Bearer JWT | Publico |
 | `GET` | `/api/v1/auth/me` | Consulta de perfil del usuario en sesion | Bearer JWT |
-| `POST` | `/api/v1/games` | Creacion de nueva partida vs IA (EASY, NORMAL, HARD) | Bearer JWT |
-| `GET` | `/api/v1/games/{gameId}` | Estado de partida con niebla de guerra para el rival | Bearer JWT |
-| `POST` | `/api/v1/games/{gameId}/shots` | Disparo humano y contraataque reactivo de IA | Bearer JWT |
+| `PUT` | `/api/v1/auth/password` | Cambio seguro de credencial de acceso | Bearer JWT |
+| `POST` | `/api/v1/games` | Creacion de partida vs IA (EASY, NORMAL, HARD) | Libre / Invitado |
+| `GET` | `/api/v1/games/{gameId}` | Estado de partida con niebla de guerra para el rival | Libre / Invitado |
+| `POST` | `/api/v1/games/{gameId}/shots` | Disparo tactico y contraataque reactivo de IA | Libre / Invitado |
+| `POST` | `/api/v1/games/{gameId}/claim` | Reclamacion y persistencia de partida jugada como invitado | Bearer JWT |
 | `GET` | `/api/v1/games/{gameId}/history` | Trazabilidad completa de disparos de la partida | Bearer JWT |
-| `GET` | `/api/v1/leaderboard/personal` | Top 10 puntuaciones individuales del usuario | Bearer JWT |
-| `GET` | `/api/v1/leaderboard/global` | Ranking global con los mejores resultados | Bearer JWT |
-| `GET` | `/swagger-ui.html` | Interfaz interactiva de documentacion OpenAPI | Publico |
-| `GET` | `/v3/api-docs` | Especificacion JSON OpenAPI 3.0 | Publico |
+| `GET` | `/api/v1/leaderboard/matches` | Top 10 mejores partidas individuales (victorias/derrotas) | Publico |
+| `GET` | `/api/v1/leaderboard/players` | Top 10 mejores oficiales ordenados por suma de puntos | Publico |
+| `GET` | `/api/v1/leaderboard/me/matches` | Top 10 mejores partidas personales del oficial en sesion | Bearer JWT |
+| `GET` | `/api/v1/leaderboard/me/recent` | Historial cronologico de ultimas 10 batallas | Bearer JWT |
+| `GET` | `/api/v1/leaderboard/me/stats` | Estadisticas de carrera militar y rango naval | Bearer JWT |
+| `GET` | `/healthz` | Endpoint de salud y disponibilidad para orquestadores cloud | Publico |
+| `GET` | `/swagger-ui.html` | Interfaz interactiva de documentacion OpenAPI 3 | Publico |
+| `GET` | `/v3/api-docs` | Especificacion JSON OpenAPI 3.0 viva | Publico |
 | `GET` | `/h2-console` | Consola web de administracion de base de datos H2 | Publico (Dev) |
 
 ---
 
 ## 8. Arquitectura Frontend Web (Next.js 16, React 19, Tailwind CSS)
 
-El modulo `frontend/` implementa una interfaz de usuario reactiva, responsive y de estetica militar retro CRT ("Combat Information Center"), conectada directamente con la API REST del backend mediante JWT.
+El modulo `frontend/` implementa una interfaz de usuario reactiva, responsive y de estetica militar retro CRT ("Combat Information Center"), conectada directamente con la API REST del backend mediante JWT o en Modo Invitado efimero.
 
 ```mermaid
 flowchart TD
@@ -359,14 +384,15 @@ flowchart TD
     end
 
     subgraph StateMachine ["Maquina de Estados del Cliente"]
-        DEP["Fase DEPLOYMENT (FleetPlacement.tsx)"]
+        DEP["Fase DEPLOYMENT (FleetPlacement.tsx - Autodespliegue e Invitado)"]
         COMB["Fase COMBAT (CombatGrid.tsx & TelemetryLog.tsx)"]
-        OVER["Fase GAMEOVER (Resumen de Bajas y Citacion)"]
+        OVER["Fase GAMEOVER (Resumen de Bajas, Puntuacion y Boton Reclamar)"]
     end
 
     subgraph Modals ["Componentes Modales de Gestion"]
-        AUTH_M["AuthModal.tsx (Login / Registro / Guardia 403)"]
-        LEAD_M["LeaderboardModal.tsx (Admiralty Roll)"]
+        AUTH_M["AuthModal.tsx (Login / Registro / Verificacion OTP 6 Digitos)"]
+        LEAD_M["LeaderboardModal.tsx (Admiralty Roll: Top Partidas vs Top Oficiales)"]
+        PROF_M["ProfileModal.tsx (Expediente de Oficial: Estadisticas, Rango y Password)"]
     end
 
     subgraph ApiClient ["Capa de Comunicacion HTTP (api.ts)"]
@@ -382,10 +408,12 @@ flowchart TD
     UI --> AUDIO
     UI --> StateMachine
     UI --> Modals
-    DEP -->|Valida credenciales & Naves| ApiClient
+    DEP -->|Modo Invitado o Autenticado| ApiClient
     COMB -->|Envio de disparos y telemetria| ApiClient
-    AUTH_M -->|Autenticacion HMAC-SHA256| ApiClient
-    LEAD_M -->|Consulta de records| ApiClient
+    OVER -->|Reclamacion de puntos post-combate| ApiClient
+    AUTH_M -->|Autenticacion HMAC-SHA256 & OTP| ApiClient
+    LEAD_M -->|Consulta de records dual| ApiClient
+    PROF_M -->|Consulta de expediente y credenciales| ApiClient
     ApiClient --> STORAGE
     ApiClient -->|Peticiones HTTP JSON| SPRING_API
 ```
@@ -394,7 +422,7 @@ flowchart TD
 
 ## 9. Topologia y Arquitectura de Despliegue DevOps (Docker & Cloud)
 
-La plataforma esta preparada tanto para orquestacion multi-contenedor local mediante Docker Compose como para despliegue distribuido de alto rendimiento en la nube (Vercel + Render + PostgreSQL).
+La plataforma esta preparada tanto para orquestacion multi-contenedor local mediante Docker Compose como para despliegue distribuido de alto rendimiento en la nube (Vercel + Render + PostgreSQL en Neon).
 
 ```mermaid
 flowchart TD
@@ -413,12 +441,12 @@ flowchart TD
     end
 
     subgraph ManagedDB ["Base de Datos Gestionada"]
-        PG_CLOUD[("PostgreSQL 16 Database")]
+        PG_CLOUD[("PostgreSQL 16 Database (Neon Frankfurt)")]
     end
 
     subgraph GitHubActions ["Integracion Continua (CI/CD)"]
         GH_RUNNER["GitHub Actions Runner (Ubuntu)"]
-        TEST_JOB["Maven multi-module (72 tests)"]
+        TEST_JOB["Maven multi-module (91 tests passing)"]
         LINT_JOB["Next.js build & TypeScript verify"]
     end
 
@@ -430,4 +458,5 @@ flowchart TD
 
     GH_RUNNER --> TEST_JOB
     GH_RUNNER --> LINT_JOB
+```
 ```

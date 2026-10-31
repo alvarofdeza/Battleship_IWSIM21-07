@@ -12,7 +12,7 @@
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)
 ![JUnit5](https://img.shields.io/badge/JUnit5-5.10.2-25A162?style=for-the-badge&logo=junit5&logoColor=white)
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-78%20Passed-success?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-91%20Passed-success?style=for-the-badge)
 
 Implementacion full-stack modular del clasico juego de combate naval Hundir la Flota (Battleship). Inicialmente desarrollado en el ambito academico para la asignatura Fundamentos de Ingenieria del Software en la Universidad Politecnica de Madrid (UPM - ETSISI), este proyecto ha sido transformado en una plataforma profesional desacoplada con **Clean Architecture**, **Spring Boot 3**, **Spring Security con JWT**, **persistencia relacional Spring Data JPA**, **algoritmos avanzados de Inteligencia Artificial** e **interfaz tactica web militar en Next.js**.
 
@@ -55,15 +55,15 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
   * Diseno desacoplado donde el motor de dominio y la capa de persistencia se comunican exclusivamente mediante abstracciones e interfaces estandar (JPA, JDBC, Spring Security).
   * Ningun modulo depende de APIs propietarias de proveedores de hosting o de base de datos, garantizando portabilidad absoluta entre entornos locales (Docker Compose), bases de datos serverless (Neon) o nubes empresariales (AWS, Render, Railway).
   * Desacoplamiento total de dependencias legacy: sustitucion del antiguo `externals-5.1.jar` por la clase autonoma `ExternalLDAP` con modo silencioso para ejecucion en contenedores.
-* **Suite Automatizada de 78 Tests (100% Cobertura de Integracion y Dominio):**
-  * 58 tests en `core` y 20 tests de integracion y configuracion con MockMvc en `backend`.
+* **Suite Automatizada de 91 Tests (100% Cobertura de Integracion y Dominio):**
+  * 59 tests en `core` y 32 tests de integracion y configuracion con MockMvc en `backend`.
 
 ---
 
 ## 2. Documentacion Tecnica y Modelado
 
 * [modelado/ARQUITECTURA_Y_DISENO.md](modelado/ARQUITECTURA_Y_DISENO.md): Diagramas de componentes, arquitectura enterprise Spring Boot 3, arquitectura web frontend, diagrama de clases, diagrama entidad-relacion (ERD), catalogo de endpoints REST y topologia DevOps.
-* [pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md](pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md): Matriz de trazabilidad y reporte de los 78 tests automatizados (JUnit 5, Mockito, Spring Security Test, MockMvc) y verificacion de compilacion frontend.
+* [pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md](pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md): Matriz de trazabilidad y reporte de los 91 tests automatizados (JUnit 5, Mockito, Spring Security Test, MockMvc) y verificacion de compilacion frontend.
 * [AGENTS.md](AGENTS.md): Hoja de ruta (Roadmap), Definition of Done (DoD) y registro de hitos del proyecto.
 * `legacy/`: Archivo historico de artefactos academicos de la universidad (diagramas originales, pruebas iniciales y PDFs) preservados conforme a las normas de ingenieria.
 
@@ -94,7 +94,7 @@ Para iniciar automaticamente el backend Spring Boot y el frontend Next.js en ven
 * **Detener:** Doble clic en `stop-dev.bat` o ejecutar en PowerShell `.\stop-dev.ps1` (o pulsar `Ctrl + C` en cada terminal)
 
 ### Ejecucion de la Suite Completa de Tests
-Para compilar y verificar los 78 tests unitarios y de integracion:
+Para compilar y verificar los 91 tests unitarios y de integracion:
 
 ```bash
 # En Windows:
@@ -205,6 +205,8 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
    * `SPRING_PROFILES_ACTIVE`: `prod`
    * `SPRING_DATASOURCE_URL`: *(Cadena de conexion copiada de Neon)*
    * `JWT_SECRET`: *(Cadena secreta aleatoria de al menos 64 caracteres en hexadecimal, o la definida en `.env.example`)*
+   * `RESEND_API_KEY`: *(Clave de API de Resend para envio de codigos PIN de verificacion OTP en produccion)*
+   * `RESEND_FROM_EMAIL`: `onboarding@resend.dev` (o remitente de dominio verificado)
 4. Pulsa **Create Web Service**. Render compila la imagen multi-stage y publica la URL HTTPS: `https://battleship-backend-ys61.onrender.com`.
 5. **Configuracion de Keep-Alive y Gestion de Cuota (750h/mes):**
    * Render Free proporciona 750 horas de computo al mes compartidas entre todos los servicios de la cuenta. Un servicio 24/7 consume ~744 horas.
@@ -215,7 +217,7 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
      4. **Friendly Name:** `Battleship Backend (Render)`.
      5. **URL:** `https://battleship-backend-ys61.onrender.com/healthz`.
      6. **Monitoring Interval:** Cada `10 minutos` o `12 minutos`.
-     7. **Pausa Inteligente de Cuota:** En el panel de UptimeRobot existe un boton de alternancia (*Pause / Resume*). Con un solo clic se pausa el sondeo, permitiendo que Render se duerma tras 15 minutos de inactividad para no consumir horas cuando se trabaje en otros proyectos.
+     7. **Pausa Inteligente de Cuota:** En el panel de UptimeRobot existe un boton de alternancia (*Pause / Resume*). Con un solo clic se pausa el sondeo, permitiendo que Render se duerma tras 15 minutos de inactividad para no consumir horas cuando se trabaje en otros proyectos. *(Nota: La Status Page publica es opcional y puede eliminarse si no se desea mostrar dicho panel publico; lo indispensable para mantener activo el backend es el Monitor de sondeo en si)*.
 
 ### 6.3 Frontend Web y Server Warm-Up UX (Vercel)
 1. Accede a [Vercel](https://vercel.com) e inicia sesion con GitHub.
@@ -236,18 +238,20 @@ Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red
 ## 7. Pipeline de Integracion Continua (GitHub Actions)
 
 El archivo `.github/workflows/ci.yml` ejecuta una suite automatizada de verificacion de calidad en cada `push` o `pull request` dirigido a la rama `main`:
-* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 78 tests unitarios y de integracion (`BUILD SUCCESS`).
+* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 91 tests unitarios y de integracion (`BUILD SUCCESS`).
 * **Job Frontend:** Descarga Node 20, verifica tipos estricto con TypeScript (`tsc --noEmit`) y compila la aplicacion Next.js con Turbopack.
 
 ---
 
-## 8. Credenciales de Prueba Preconfiguradas
+## 8. Cuentas de Acceso y Benchmarks de Referencia
 
-Al iniciar la aplicacion, se generan automaticamente los siguientes usuarios semilla:
+La plataforma permite el juego inmediato sin barreras de entrada mediante el **Modo Invitado**, ofreciendo la opcion de reclamar los puntos acumulados al concluir la batalla mediante registro con correo o inicio de sesion.
 
-| Usuario | Email | Password | Rol |
+Para tareas de administracion, pruebas automatizadas y marcas historicas de referencia (benchmark), existen las siguientes cuentas en el sistema:
+
+| Usuario | Email | Rol | Descripcion |
 | :--- | :--- | :--- | :--- |
-| `admin` | `admin@upm.es` | `admin123` | `ROLE_ADMIN` |
-| `alvaro` | `alvaro@alumnos.upm.es` | `password123` | `ROLE_USER` |
-| `adrian` | `adrian@alumnos.upm.es` | `password123` | `ROLE_USER` |
+| `alvaro` | `alvaro@alumnos.upm.es` | `ROLE_USER` | Record de honor inicial de referencia (2.150 pts en dificultad Hard). |
+| `admin` | `admin@upm.es` | `ROLE_ADMIN` | Administrador de plataforma y gestion global. |
+| `adrian` | `adrian@alumnos.upm.es` | `ROLE_USER` | Usuario estandar de pruebas internas. |
 
