@@ -130,10 +130,11 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 - [x] Dockerfile multi-stage para el frontend Next.js 16 con empaquetado standalone ultra-ligero y usuario no privilegiado (`frontend/Dockerfile`).
 - [x] Archivo `docker-compose.yml` multi-servicio (Compose Spec v2) para levantar localmente el frontend, backend y PostgreSQL 16 con healthcheck y volumen persistente.
 - [x] Plantilla `.env.example` y archivos `.dockerignore` exhaustivos para aislamiento de entornos de desarrollo y produccion.
-- [x] Configuracion de resiliencia de conexion cloud en `DatabaseConfig.java` compatible con PostgreSQL en Render, Railway, Neon y Docker.
-- [x] Archivo de infraestructura como codigo `render.yaml` para despliegue automatizado con base de datos gestionada en Render.
+- [x] Configuracion de resiliencia de conexion cloud en `DatabaseConfig.java` compatible con PostgreSQL en Neon, Render, Railway y Docker.
+- [x] Arquitectura de despliegue cloud permanente y sin coste: base de datos perpetua en Neon (sin caducidad de 30 dias), backend en Render con keep-alive ping (UptimeRobot) y frontend en Vercel con telemetria warm-up.
+- [x] Archivo de infraestructura como codigo `render.yaml` para despliegue automatizado con Docker en Render.
 - [x] Pipeline de integracion continua (CI/CD) con GitHub Actions (`.github/workflows/ci.yml`) que valida los 75 tests de Maven y compila el frontend en cada commit a `main`.
-- [x] README.md profesional con arquitectura de despliegue en Mermaid, insignias tecnicas (CI, Docker, Next.js, Spring Boot) y guia de ejecucion.
+- [x] README.md profesional con arquitectura de despliegue en Mermaid, insignias tecnicas (CI, Docker, Next.js, Spring Boot, PostgreSQL) y guia de ejecucion paso a paso.
 
 ---
 

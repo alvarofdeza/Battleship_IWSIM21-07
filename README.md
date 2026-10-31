@@ -75,8 +75,8 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
 
 ### Arranque Rapido en 1 Clic (Desarrollo Local en Windows)
 Para iniciar automaticamente el backend Spring Boot y el frontend Next.js en ventanas independientes:
-* **Hacer doble clic en:** `run-dev.bat`
-* **O ejecutar en PowerShell:** `.\run-dev.ps1`
+* **Iniciar:** Doble clic en `run-dev.bat` o ejecutar en PowerShell `.\run-dev.ps1`
+* **Detener:** Doble clic en `stop-dev.bat` o ejecutar en PowerShell `.\stop-dev.ps1` (o pulsar `Ctrl + C` en cada terminal)
 
 ### Ejecucion de la Suite Completa de Tests
 Para compilar y verificar los 75 tests unitarios y de integracion:
@@ -158,23 +158,56 @@ docker compose down
 
 ---
 
-## 6. Despliegue Cloud en Vivo (Render & Vercel)
+## 6. Despliegue Cloud en Vivo (Arquitectura de Alta Disponibilidad Gratuita)
 
-La infraestructura esta disenada para publicarse gratuitamente en internet para demostracion publica:
+Para que la demostracion publica en internet sea **100% gratuita, permanente y sin caducidad de base de datos**, la plataforma implementa una arquitectura desacoplada de alto rendimiento basada en tres servicios cloud especializados:
 
-### 6.1 Backend y Base de Datos (Render)
-1. Conecta el repositorio en [Render](https://render.com).
-2. Render detectara automaticamente el archivo `render.yaml` creando:
-   * **Servicio Web Docker:** Ejecutando `backend/Dockerfile` en el contexto raiz.
-   * **PostgreSQL Gestionado:** Base de datos persistente en la nube vinculada automaticamente por variables de entorno.
-3. El backend expone la API REST publica con URL tipo `https://battleship-backend.onrender.com`.
+```
+[Usuario / Navegador]
+        |
+        v (HTTPS / Edge CDN)
+ [Vercel: Frontend Next.js 16] ---> (Warm-up Telemetry UX si el servidor despierta)
+        |
+        v (REST API / Bearer JWT)
+ [Render: Backend Docker JRE 17] <--- (Keep-Alive Ping cada 12 min via UptimeRobot)
+        |
+        v (HikariCP JDBC Pool)
+ [Neon: PostgreSQL 16 Serverless] ---> (Persistencia perpetua sin fecha de caducidad)
+```
 
-### 6.2 Frontend Web (Vercel)
-1. Importa el repositorio en [Vercel](https://vercel.com).
-2. Establece el **Root Directory** en `frontend`.
-3. Anade la siguiente variable de entorno:
-   * `NEXT_PUBLIC_API_URL`: `https://battleship-backend.onrender.com/api/v1`
-4. Pulsa **Deploy**. Vercel compila y distribuye la aplicacion a traves de su red CDN global.
+### 6.1 Base de Datos Relacional Permanente (Neon)
+1. Accede a [Neon.tech](https://neon.tech) e inicia sesion con tu cuenta de GitHub (100% gratuito sin requerir tarjeta de credito).
+2. Crea un proyecto nuevo con base de datos `battleship_db` y PostgreSQL 16. A diferencia de otros proveedores, Neon **no caduca a los 30 dias** y ofrece 0.5 GB de almacenamiento persistente perpetuo.
+3. En el panel de control de Neon, copia la cadena de conexion (Connection String).
+
+### 6.2 Backend REST API (Render) y Keep-Alive Ping
+1. Accede a [Render](https://render.com) e inicia sesion con GitHub.
+2. Crea un nuevo **Web Service**, vincula este repositorio y selecciona:
+   * **Runtime:** Docker (utilizara `backend/Dockerfile`).
+   * **Root Directory:** `.` (raiz del proyecto).
+   * **Plan:** Free.
+3. En la seccion de variables de entorno (**Environment Variables**), configura:
+   * `SPRING_PROFILES_ACTIVE`: `prod`
+   * `SPRING_DATASOURCE_URL`: *(Pega la cadena de conexion copiada de Neon)*
+   * `JWT_SECRET`: `404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970`
+4. Pulsa **Create Web Service**. Render compilara la imagen multi-stage y publicara la URL HTTPS (p. ej. `https://battleship-backend-xxxx.onrender.com`).
+5. **Prevencion de Suspension (Keep-Alive):** Para evitar que el contenedor gratuito se duerma tras 15 minutos de inactividad, registra una cuenta gratuita en [UptimeRobot](https://uptimerobot.com) o [Cron-job.org](https://cron-job.org) y anade un monitor de tipo HTTP(s) que envie un `GET` cada 12 minutos a:
+   `https://battleship-backend-xxxx.onrender.com/v3/api-docs`
+   Esto mantendra el backend despierto 24/7 sin coste alguno.
+
+### 6.3 Frontend Web y Server Warm-Up UX (Vercel)
+1. Accede a [Vercel](https://vercel.com) e inicia sesion con GitHub.
+2. Importa el repositorio `Battleship_IWSIM21-07`.
+3. En la configuracion del proyecto:
+   * **Root Directory:** `frontend`
+   * **Framework Preset:** Next.js
+4. En **Environment Variables**, anade:
+   * `NEXT_PUBLIC_API_URL`: `https://battleship-backend-xxxx.onrender.com/api/v1`
+5. Pulsa **Deploy**. Vercel compila la aplicacion en su red Edge CDN mundial en ~40 segundos.
+6. El frontend incluye un subsistema de deteccion temprana que, si el backend estuviese despertando en frio, muestra una barra de progreso tactica naval ("CIC Reactor Warm-up") informando con precision del estado sin proyectar sensacion de error.
+
+### 6.4 Rol de Cloudflare (Opcional)
+Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red de distribucion DNS. Su uso es altamente recomendado si se desea vincular un **dominio personalizado propio** (por ejemplo `battleship.dev` o `batallanaval.es`). Para los subdominios gratuitos (`*.vercel.app` y `*.onrender.com`), tanto Vercel como Render ya integran sus propios certificados SSL automaticos y redes CDN Anycast, por lo que Cloudflare no es obligatorio en la fase inicial.
 
 ---
 
