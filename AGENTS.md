@@ -1,6 +1,9 @@
-# Battleship Platform - Engineering & Agent Roadmap
+# FleetGrid Platform - Engineering & Agent Roadmap
 
-Este documento define la arquitectura, normas de desarrollo, Definition of Done (DoD) y la hoja de ruta viva (Roadmap) de hitos del proyecto Battleship.
+> [!NOTE]
+> **Trazabilidad y Origen Academico:** FleetGrid es la evolucion tecnologica y maduracion profesional del proyecto de software universitario original `Battleship_IWSIM21-07` (UPM - ETSISI).
+
+Este documento define la arquitectura, normas de desarrollo, Definition of Done (DoD) y la hoja de ruta viva (Roadmap) de hitos de la plataforma FleetGrid.
 
 ---
 
@@ -87,7 +90,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
   - [x] Endpoint `POST /api/v1/games/{id}/claim` para transferir la partida jugada como invitado a la cuenta del usuario tras login o registro.
 
 - [x] **Fase 3: Verificacion de Correo con Codigo OTP de 6 Digitos:**
-  - [x] Servicio transaccional para envio de correos con plantilla tactica naval y mock offline para dev/CI.
+  - [x] Servicio transaccional JavaMail (SMTP con Gmail y `fleetgrid.command@gmail.com`) con plantilla tactica naval y mock offline para dev/CI.
   - [x] Generacion y validacion de codigos OTP de 6 digitos con expiracion a los 10 minutos.
   - [x] Campos `email_verified`, `verification_otp` y `otp_expires_at` en `UserEntity` y endpoint `POST /api/v1/auth/verify-email`.
   - [x] Componente modal en el frontend con 6 casillas para introduccion del codigo PIN militar.

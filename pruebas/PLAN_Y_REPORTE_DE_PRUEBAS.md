@@ -1,4 +1,4 @@
-# Plan y Reporte de Pruebas Automatizadas - Battleship Platform
+# Plan y Reporte de Pruebas Automatizadas - FleetGrid Platform
 
 Este documento consolida la documentacion de pruebas de caja blanca y caja negra, proporcionando la matriz de trazabilidad y el reporte de ejecucion automatizada mediante **JUnit 5**, **Mockito** y **AssertJ**.
 

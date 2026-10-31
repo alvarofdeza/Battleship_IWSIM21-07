@@ -26,6 +26,7 @@ public final class UsernamePolicyValidator {
                 "support", "soporte", "help", "ayuda", "atencion",
                 "official", "oficial", "verified", "verificado",
                 "battleship", "battleship-core", "battleship-backend",
+                "fleetgrid", "fleetgrid-command", "fleetgrid-backend",
                 "server", "servidor", "host", "localhost", "api", "endpoint", "swagger", "openapi",
                 "bot", "ai", "ia", "cpu", "npc", "computer", "ordenador",
                 "security", "seguridad", "auth", "login", "logout", "register", "signup",

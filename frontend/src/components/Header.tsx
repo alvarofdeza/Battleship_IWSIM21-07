@@ -64,12 +64,12 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-['Press_Start_2P'] text-xs text-[#00ff66] tracking-wider glow-radar">
-                BATTLESHIP // CIC-95
+                FLEETGRID // CIC-95
               </span>
               <span className="inline-block w-2 h-2 rounded-full bg-[#00ff66] animate-pulse" />
             </div>
             <div className="text-[11px] text-[#8fa5bf] tracking-widest uppercase">
-              US Naval Command Tactical Operations &bull; Spring Boot 3 Engine
+              Fleet Tactical Operations Terminal &bull; Spring Boot 3 Engine
             </div>
           </div>
         </div>

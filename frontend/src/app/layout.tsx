@@ -18,8 +18,8 @@ const tacticalFont = Share_Tech_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'USS BATTLESHIP // Combat Information Center',
-  description: 'Tactical naval warfare simulation platform with Probability Density AI and Spring Boot 3 backend.',
+  title: 'FLEETGRID // Combat Information Center',
+  description: 'FleetGrid - Tactical naval warfare simulation platform with Probability Density AI and Spring Boot 3 backend.',
 };
 
 /**
