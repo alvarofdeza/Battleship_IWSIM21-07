@@ -20,7 +20,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
    * **Documentacion y JavaDoc 100% en espanol:** Especificaciones técnicas en Markdown, bloques JavaDoc en clases e interfaces, y comentarios explicativos de algoritmos.
 
 3. **Suite de Tests Automatizada al 100%:**
-   * Cobertura de pruebas unitarias y de integracion para toda la logica implementada (153 tests automatizados: 59 en core y 94 en backend).
+   * Cobertura de pruebas unitarias y de integracion para toda la logica implementada (180 tests automatizados: 59 en core y 121 en backend).
    * La suite de tests de Maven debe ejecutarse sin un solo fallo ni error (`BUILD SUCCESS`).
    * No se permiten dependencias de tests basadas en trucos de reflexión frágiles ni estados sucios entre ejecuciones.
 
@@ -41,6 +41,12 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
    * En el entorno de desarrollo conviven multiples identidades y credenciales de Git que requieren seleccion y autorizacion manual interactiva por parte del usuario.
    * La labor del agente se limita a la preparacion local de commits (staging, generacion de commit semantico descriptivo y comprobacion de estado limpio en `git status`).
    * La orden de subida a ramas remotas (`git push origin main`) debe facilitarse siempre en texto plano al desarrollador para su ejecucion manual soberana.
+
+8. **Auditoria Continua de Casos Limite, Resiliencia y Blindaje de Ciberseguridad (Defensive Engineering):**
+   * En cada iteracion o modificacion de codigo, el agente debe anticipar y buscar proactivamente casos limite (edge cases), condiciones de carrera, entradas malformadas, colisiones de eventos de teclado/UI y posibles vectores de vulnerabilidad (OWASP Top 10, CWE).
+   * Se deben auditar y mitigar activamente: ataques de fuerza bruta en codigos de verificacion (bloqueo transaccional por umbral de intentos fallidos), vectores de denegacion de servicio algoritmico (DoS por hashing de contrasenas infinitas limitando longitudes maximas a 50 caracteres), inyecciones XSS / SQL mediante validacion estricta de esquemas (`@Pattern`, `@Size`), manipulacion de tokens y duplicidades transaccionales (proteccion contra replay en reclamaciones de partidas mediante comprobaciones en BD y memoria).
+   * Ninguna excepcion no controlada debe fugarse al cliente; todas las anomalias deben ser interceptadas y estandarizadas en manejadores globales con codigos HTTP y mensajes semanticos controlados.
+   * Toda nueva restriccion o blindaje debe contar obligatoriamente con su correspondiente test automatizado de integracion o unidad.
 
 ---
 
@@ -96,7 +102,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 - [ ] **Fase 5: Saneamiento de Base de Datos en Neon, Suite de Tests y Despliegue:**
   - [x] Sembrado de record de honor de referencia para `alvaro` y aislamiento en base de datos.
-  - [x] Suite de pruebas automatizada ampliada cubriendo los nuevos endpoints y calculos matematicos (153 tests passing).
+  - [x] Suite de pruebas automatizada ampliada cubriendo los nuevos endpoints y calculos matematicos (180 tests passing).
   - [ ] Despliegue en produccion en Render y Vercel (tras push manual del desarrollador).
 
 ---

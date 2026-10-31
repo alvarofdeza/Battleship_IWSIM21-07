@@ -15,7 +15,8 @@ class UsernamePolicyValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "alvaro", "alvaro_07", "Ghost-Recon", "alpha_1", "Viper-99", "Task_Force_7",
-            "Cadet01", "SeaWolf", "commander_x", "tactical-navy"
+            "Cadet01", "SeaWolf", "commander_x", "tactical-navy", "admiral_alpha-99",
+            "delta_bravo_07", "uss_enterprise", "nautilus_99", "falcon_eye"
     })
     @DisplayName("Nombres de usuario validos con letras, numeros, guiones y barras bajas son aceptados")
     void testValidUsernamesAccepted(String username) {
@@ -27,7 +28,8 @@ class UsernamePolicyValidatorTest {
     @ValueSource(strings = {
             "admin", "ADMIN", "Administrator", "root", "system", "null", "undefined",
             "guest", "moderator", "support", "official", "battleship", "server", "api",
-            "administrador", "soporte", "sistema", "invitado"
+            "administrador", "soporte", "sistema", "invitado", "anonymous", "verified",
+            "superuser", "superadmin", "security", "seguridad", "ayuda", "desarrollador"
     })
     @DisplayName("Nombres reservados del sistema son rechazados (independiente de mayusculas)")
     void testReservedUsernamesRejected(String username) {
@@ -40,7 +42,10 @@ class UsernamePolicyValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "bad_fuck_user", "shit_happens", "bitch_01", "little_asshole", "nazi_soldier", "hitler_fan",
-            "puta_barata", "el_cabron_99", "maricon_x", "polla_loca", "p0ll4", "h1tl3r"
+            "puta_barata", "el_cabron_99", "maricon_x", "polla_loca", "p0ll4", "h1tl3r",
+            "whore_master", "bastard_guy", "subnormal_99", "retrasado_boy", "pedophile_killer",
+            "violador_serial", "pendejo_loco", "hijoputa_net", "bullshit_crew", "fucking_warrior",
+            "phishing_site", "scammer_99", "estafador_pro", "trojan_bot"
     })
     @DisplayName("Terminos ofensivos en ingles o espanol (incluyendo leetspeak basico) son rechazados")
     void testOffensiveUsernamesRejected(String username) {
