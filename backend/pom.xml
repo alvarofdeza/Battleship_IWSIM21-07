@@ -35,10 +35,6 @@
           <artifactId>javax.persistence-api</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>etsisi2</groupId>
-          <artifactId>externals</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>com.h2database</groupId>
           <artifactId>h2</artifactId>
         </exclusion>

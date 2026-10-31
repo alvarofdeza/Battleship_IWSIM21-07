@@ -32,13 +32,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Legacy external authentication mock (to be migrated in Hito 2 with Spring Security) -->
-    <dependency>
-      <groupId>etsisi2</groupId>
-      <artifactId>externals</artifactId>
-      <version>5.1</version>
-    </dependency>
-
     <!-- H2 Embedded Database -->
     <dependency>
       <groupId>com.h2database</groupId>
@@ -111,12 +104,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>local-repo</id>
-      <url>file://${project.basedir}/libs</url>
-    </repository>
-  </repositories>
 
 </project>
