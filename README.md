@@ -18,6 +18,16 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
 
 ---
 
+## Enlaces de Produccion en Vivo (Live Demo)
+
+* **Interfaz Tactica Web (Vercel Edge):** [https://battleship-iwsim-21-07.vercel.app/](https://battleship-iwsim-21-07.vercel.app/)
+* **Backend REST API (Render Docker):** [https://battleship-backend-ys61.onrender.com](https://battleship-backend-ys61.onrender.com)
+* **Documentacion OpenAPI 3 / Swagger UI:** [https://battleship-backend-ys61.onrender.com/swagger-ui.html](https://battleship-backend-ys61.onrender.com/swagger-ui.html)
+* **Monitor de Salud (Health Check):** [https://battleship-backend-ys61.onrender.com/healthz](https://battleship-backend-ys61.onrender.com/healthz)
+* **Base de Datos Cloud:** PostgreSQL 16 Serverless en Neon (Region Frankfurt `eu-central-1`, sin caducidad)
+
+---
+
 ## 1. Caracteristicas Principales
 
 * **Arquitectura de Tres Capas Desacopladas:**
@@ -185,7 +195,7 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
 2. Crea un proyecto nuevo con base de datos `battleship_db` y PostgreSQL 16. A diferencia de otros proveedores, Neon **no caduca a los 30 dias** y ofrece 0.5 GB de almacenamiento persistente perpetuo.
 3. En el panel de control de Neon, copia la cadena de conexion (Connection String).
 
-### 6.2 Backend REST API (Render) y Keep-Alive Ping
+### 6.2 Backend REST API (Render) y Monitor Keep-Alive con UptimeRobot
 1. Accede a [Render](https://render.com) e inicia sesion con GitHub.
 2. Crea un nuevo **Web Service**, vincula este repositorio y selecciona:
    * **Runtime:** Docker (utilizara `backend/Dockerfile`).
@@ -193,12 +203,19 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
    * **Plan:** Free.
 3. En la seccion de variables de entorno (**Environment Variables**), configura:
    * `SPRING_PROFILES_ACTIVE`: `prod`
-   * `SPRING_DATASOURCE_URL`: *(Pega la cadena de conexion copiada de Neon)*
+   * `SPRING_DATASOURCE_URL`: *(Cadena de conexion copiada de Neon)*
    * `JWT_SECRET`: `404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970`
-4. Pulsa **Create Web Service**. Render compilara la imagen multi-stage y publicara la URL HTTPS (p. ej. `https://battleship-backend-xxxx.onrender.com`).
-5. **Prevencion de Suspension (Keep-Alive):** Para evitar que el contenedor gratuito se duerma tras 15 minutos de inactividad, registra una cuenta gratuita en [UptimeRobot](https://uptimerobot.com) o [Cron-job.org](https://cron-job.org) y anade un monitor de tipo HTTP(s) que envie un `GET` cada 12 minutos a:
-   `https://battleship-backend-xxxx.onrender.com/healthz`
-   (o alternativamente a `/v3/api-docs`). Esto mantendra el backend despierto 24/7 sin coste alguno.
+4. Pulsa **Create Web Service**. Render compila la imagen multi-stage y publica la URL HTTPS: `https://battleship-backend-ys61.onrender.com`.
+5. **Configuracion de Keep-Alive y Gestion de Cuota (750h/mes):**
+   * Render Free proporciona 750 horas de computo al mes compartidas entre todos los servicios de la cuenta. Un servicio 24/7 consume ~744 horas.
+   * Para mantener el backend disponible sin que se duerma tras 15 minutos, pero **pudiendo pausarlo en 1 clic** si se despliegan otros proyectos:
+     1. Registrate gratis en [UptimeRobot](https://uptimerobot.com).
+     2. Pulsa en **Add New Monitor**.
+     3. **Monitor Type:** `HTTP(s)`.
+     4. **Friendly Name:** `Battleship Backend (Render)`.
+     5. **URL:** `https://battleship-backend-ys61.onrender.com/healthz`.
+     6. **Monitoring Interval:** Cada `10 minutos` o `12 minutos`.
+     7. **Pausa Inteligente de Cuota:** En el panel de UptimeRobot existe un boton de alternancia (*Pause / Resume*). Con un solo clic se pausa el sondeo, permitiendo que Render se duerma tras 15 minutos de inactividad para no consumir horas cuando se trabaje en otros proyectos.
 
 ### 6.3 Frontend Web y Server Warm-Up UX (Vercel)
 1. Accede a [Vercel](https://vercel.com) e inicia sesion con GitHub.
@@ -207,9 +224,9 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
    * **Root Directory:** `frontend`
    * **Framework Preset:** Next.js
 4. En **Environment Variables**, anade:
-   * `NEXT_PUBLIC_API_URL`: `https://battleship-backend-xxxx.onrender.com/api/v1`
-5. Pulsa **Deploy**. Vercel compila la aplicacion en su red Edge CDN mundial en ~40 segundos.
-6. El frontend incluye un subsistema de deteccion temprana que, si el backend estuviese despertando en frio, muestra una barra de progreso tactica naval ("CIC Reactor Warm-up") informando con precision del estado sin proyectar sensacion de error.
+   * `NEXT_PUBLIC_API_URL`: `https://battleship-backend-ys61.onrender.com/api/v1`
+5. Pulsa **Deploy**. Vercel compila la aplicacion en su red Anycast Edge CDN y genera el enlace publico: [https://battleship-iwsim-21-07.vercel.app/](https://battleship-iwsim-21-07.vercel.app/).
+6. El frontend incluye telemetria de deteccion temprana: si el backend estuviese en reposo tras una pausa del monitor, muestra una animacion tactica de arranque del reactor naval mientras Render se reactiva en ~45 segundos.
 
 ### 6.4 Rol de Cloudflare (Opcional)
 Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red de distribucion DNS. Su uso es altamente recomendado si se desea vincular un **dominio personalizado propio** (por ejemplo `battleship.dev` o `batallanaval.es`). Para los subdominios gratuitos (`*.vercel.app` y `*.onrender.com`), tanto Vercel como Render ya integran sus propios certificados SSL automaticos y redes CDN Anycast, por lo que Cloudflare no es obligatorio en la fase inicial.

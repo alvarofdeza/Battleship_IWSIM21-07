@@ -135,7 +135,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 ---
 
-### [EN CURSO] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
+### [COMPLETADO] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
 *Objetivo:* Publicar la plataforma completa en internet con Live Demo publica de maximo impacto para portfolio.
 - [x] Dockerfile multi-stage optimizado para empaquetar el backend Spring Boot con Eclipse Temurin JDK/JRE 17 Alpine y usuario no privilegiado (`backend/Dockerfile`).
 - [x] Dockerfile multi-stage para el frontend Next.js 16 con empaquetado standalone ultra-ligero y usuario no privilegiado (`frontend/Dockerfile`).
@@ -146,11 +146,11 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 - [x] Endpoint de salud operativo `/healthz` (`HealthController`) con pase libre en `SecurityConfig` e integracion probada en `HealthControllerIntegrationTest`.
 - [x] Arquitectura de despliegue cloud permanente y sin coste: base de datos perpetua en Neon (sin caducidad de 30 dias), backend en Render con keep-alive ping (UptimeRobot) y frontend en Vercel con telemetria warm-up.
 - [x] Archivo de infraestructura como codigo `render.yaml` para despliegue automatizado con Docker en Render.
-- [x] Despliegue del backend en Render finalizado con exito y enlazado a Neon en Frankfurt (`eu-central-1`).
+- [x] Despliegue del backend en Render finalizado con exito y enlazado a Neon en Frankfurt (`eu-central-1`) (`https://battleship-backend-ys61.onrender.com`).
 - [x] Pipeline de integracion continua (CI/CD) con GitHub Actions (`.github/workflows/ci.yml`) que valida los 78 tests de Maven y compila el frontend en cada commit a `main`.
 - [x] README.md profesional con arquitectura de despliegue en Mermaid, insignias tecnicas (CI, Docker, Next.js, Spring Boot, PostgreSQL) y guia de ejecucion paso a paso.
-- [ ] Despliegue del frontend en Vercel conectando `NEXT_PUBLIC_API_URL` a la URL publica HTTPS de Render.
-- [ ] Configuracion de monitor keep-alive en UptimeRobot enviando peticiones cada 12 minutos a `/healthz`.
+- [x] Despliegue del frontend en Vercel (`https://battleship-iwsim-21-07.vercel.app/`) conectando `NEXT_PUBLIC_API_URL` a la URL publica HTTPS de Render.
+- [x] Documentacion del monitor keep-alive en UptimeRobot (`/healthz`) con gestion de cuota mensual y conmutador de pausa de un solo clic.
 
 ---
 
