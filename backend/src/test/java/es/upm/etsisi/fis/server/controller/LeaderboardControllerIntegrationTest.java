@@ -41,7 +41,7 @@ class LeaderboardControllerIntegrationTest {
     void setUp() throws Exception {
         leaderboardScoreRepository.deleteAll();
 
-        LoginRequest login = new LoginRequest("alvaro", "password123");
+        LoginRequest login = new LoginRequest("alvaro@alumnos.upm.es", "password123");
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))

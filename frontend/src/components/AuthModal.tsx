@@ -97,7 +97,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         toast.success(`MILITARY PIN TRANSMITTED TO ${email.toUpperCase()}`);
         setIsVerifying(true);
       } else {
-        const res = await api.login(username, password);
+        if (!email.includes('@')) {
+          toast.error('VALID EMAIL REQUIRED FOR SIGN IN');
+          setLoading(false);
+          return;
+        }
+        const res = await api.login(email, password);
         toast.success(`CLEARANCE ACCEPTED // WELCOME BACK, ${res.username.toUpperCase()}`);
         onSuccess({
           username: res.username,
@@ -284,44 +289,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
-                  Callsign / Username
-                </label>
-                <div className="relative">
-                  <Key className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter callsign..."
-                    className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
-                  />
-                </div>
-              </div>
-
+              {/* Registration: Callsign / Username */}
               {isRegister && (
                 <div>
                   <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
-                    Official Email (Dispatch)
+                    Callsign / Username
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
+                    <Key className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
                     <input
-                      type="email"
+                      type="text"
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="officer@navy.mil"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter callsign..."
                       className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
                     />
                   </div>
                   <span className="text-[10px] text-[#536780] font-mono mt-1 block">
-                    A 6-digit confirmation PIN will be dispatched to this address.
+                    Your callsign will be displayed on the Admiralty Roll and combat telemetry.
                   </span>
                 </div>
               )}
+
+              {/* Login and Registration: Official Email */}
+              <div>
+                <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
+                  Official Email
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="officer@navy.mil"
+                    className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                  />
+                </div>
+                <span className="text-[10px] text-[#536780] font-mono mt-1 block">
+                  {isRegister
+                    ? 'A 6-digit confirmation PIN will be dispatched to this address.'
+                    : 'Enter your registered email address to authorize command access.'}
+                </span>
+              </div>
 
               <div>
                 <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">

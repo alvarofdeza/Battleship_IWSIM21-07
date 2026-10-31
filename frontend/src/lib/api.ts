@@ -104,12 +104,12 @@ class ApiClient {
   // --- Endpoints de Autenticacion ---
 
   /**
-   * Inicia sesion en el backend mediante nombre de usuario y contraseña.
+   * Inicia sesion en el backend mediante correo electronico y contrasena.
    */
-  public async login(username: string, password: string): Promise<AuthResponse> {
+  public async login(email: string, password: string): Promise<AuthResponse> {
     const data = await this.request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
     this.setToken(data.token);
     return data;

@@ -22,16 +22,22 @@ import java.util.List;
 public class LeaderboardService {
 
     private final LeaderboardScoreRepository leaderboardScoreRepository;
+    private final org.springframework.core.env.Environment environment;
 
-    public LeaderboardService(LeaderboardScoreRepository leaderboardScoreRepository) {
+    public LeaderboardService(LeaderboardScoreRepository leaderboardScoreRepository,
+                              org.springframework.core.env.Environment environment) {
         this.leaderboardScoreRepository = leaderboardScoreRepository;
+        this.environment = environment;
     }
 
     /**
-     * Si el escalafon se encuentra vacio, inicializa un record de referencia para el comandante fundador.
+     * Si el escalafon se encuentra vacio (en perfiles dev/test), inicializa un record de referencia para el comandante fundador.
      */
     @PostConstruct
     public void seedInitialBenchmarkScore() {
+        if (java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            return;
+        }
         if (leaderboardScoreRepository.count() == 0) {
             leaderboardScoreRepository.save(new LeaderboardScoreEntity(
                     "alvaro",

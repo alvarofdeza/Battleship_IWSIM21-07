@@ -31,23 +31,29 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final org.springframework.core.env.Environment environment;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, AuthenticationManager authenticationManager,
-                       EmailService emailService) {
+                       EmailService emailService, org.springframework.core.env.Environment environment) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.emailService = emailService;
+        this.environment = environment;
     }
 
     /**
      * Inicializa los usuarios de prueba en la base de datos si esta vacia.
+     * En el perfil de produccion (Neon) se desactiva para mantener las tablas completamente vacias.
      */
     @PostConstruct
     public void seedInitialUsers() {
+        if (java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            return;
+        }
         if (userRepository.count() == 0) {
             registerUserInternal("admin", "admin@upm.es", "admin123", UserRole.ROLE_ADMIN);
             registerUserInternal("alvaro", "alvaro@alumnos.upm.es", "password123", UserRole.ROLE_USER);
@@ -153,10 +159,9 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        // Permitir login con username o email
-        UserEntity user = userRepository.findByUsername(request.getUsername())
-                .or(() -> userRepository.findByEmail(request.getUsername()))
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+        // Autenticacion exclusiva mediante correo electronico
+        UserEntity user = userRepository.findByEmail(request.getEmail().trim())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword())

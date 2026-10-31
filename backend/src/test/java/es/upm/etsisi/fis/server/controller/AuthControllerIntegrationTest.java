@@ -100,9 +100,9 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Login exitoso con usuario semilla devuelve 200 y token")
+    @DisplayName("Login exitoso con correo electronico devuelve 200 y token con username")
     void testLoginSuccess() throws Exception {
-        LoginRequest request = new LoginRequest("alvaro", "password123");
+        LoginRequest request = new LoginRequest("alvaro@alumnos.upm.es", "password123");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,9 +113,22 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Rechazar login cuando se introduce username en lugar de correo electronico")
+    void testLoginWithUsernameInsteadOfEmailFails() throws Exception {
+        LoginRequest request = new LoginRequest("alvaro", "password123");
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Failed"))
+                .andExpect(jsonPath("$.details.email").value("Invalid email format"));
+    }
+
+    @Test
     @DisplayName("Login con credenciales incorrectas rechaza la peticion")
     void testLoginInvalidCredentials() throws Exception {
-        LoginRequest request = new LoginRequest("alvaro", "wrongPassword");
+        LoginRequest request = new LoginRequest("alvaro@alumnos.upm.es", "wrongPassword");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -127,7 +140,7 @@ class AuthControllerIntegrationTest {
     @DisplayName("Acceso a /api/v1/auth/me protegido con JWT Bearer")
     void testGetCurrentUserProfile() throws Exception {
         // 1. Iniciar sesion para obtener token
-        LoginRequest login = new LoginRequest("admin", "admin123");
+        LoginRequest login = new LoginRequest("admin@upm.es", "admin123");
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
@@ -156,7 +169,7 @@ class AuthControllerIntegrationTest {
     @DisplayName("Cambio exitoso de contrasena actualiza las credenciales")
     void testChangePasswordSuccess() throws Exception {
         // 1. Iniciar sesion
-        LoginRequest login = new LoginRequest("adrian", "password123");
+        LoginRequest login = new LoginRequest("adrian@alumnos.upm.es", "password123");
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
@@ -174,7 +187,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isNoContent());
 
         // 3. Probar nuevo login con la nueva contrasena
-        LoginRequest newLogin = new LoginRequest("adrian", "newSecretPassword123");
+        LoginRequest newLogin = new LoginRequest("adrian@alumnos.upm.es", "newSecretPassword123");
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newLogin)))
@@ -184,7 +197,7 @@ class AuthControllerIntegrationTest {
     @Test
     @DisplayName("Cambio de contrasena con contrasena actual incorrecta es rechazado")
     void testChangePasswordWithWrongCurrentPassword() throws Exception {
-        LoginRequest login = new LoginRequest("admin", "admin123");
+        LoginRequest login = new LoginRequest("admin@upm.es", "admin123");
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
@@ -204,7 +217,7 @@ class AuthControllerIntegrationTest {
     @Test
     @DisplayName("Cambio de contrasena con nueva contrasena menor a 6 caracteres es rechazado")
     void testChangePasswordTooShortFails() throws Exception {
-        LoginRequest login = new LoginRequest("admin", "admin123");
+        LoginRequest login = new LoginRequest("admin@upm.es", "admin123");
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
