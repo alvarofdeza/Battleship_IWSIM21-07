@@ -3,6 +3,7 @@ package es.upm.etsisi.fis.server.config;
 import es.upm.etsisi.fis.server.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -53,12 +54,20 @@ public class SecurityConfig {
                                 "/healthz",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
+                                "/api/v1/auth/verify-email",
+                                "/api/v1/auth/resend-code",
+                                "/api/v1/leaderboard/matches",
+                                "/api/v1/leaderboard/players",
+                                "/api/v1/leaderboard/global",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/h2-console/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/games/*/claim").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/games", "/api/v1/games/*/shots").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/games/*", "/api/v1/games/*/history").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

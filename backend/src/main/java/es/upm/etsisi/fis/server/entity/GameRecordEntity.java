@@ -32,6 +32,15 @@ public class GameRecordEntity {
     @Column(name = "winner_username", length = 50)
     private String winnerUsername;
 
+    @Column(name = "points")
+    private Long points;
+
+    @Column(name = "duration_seconds")
+    private Long durationSeconds;
+
+    @Column(name = "moves_count")
+    private Integer movesCount;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -107,6 +116,30 @@ public class GameRecordEntity {
 
     public void setWinnerUsername(String winnerUsername) {
         this.winnerUsername = winnerUsername;
+    }
+
+    public Long getPoints() {
+        return points;
+    }
+
+    public void setPoints(Long points) {
+        this.points = points;
+    }
+
+    public Long getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public void setDurationSeconds(Long durationSeconds) {
+        this.durationSeconds = durationSeconds;
+    }
+
+    public Integer getMovesCount() {
+        return movesCount;
+    }
+
+    public void setMovesCount(Integer movesCount) {
+        this.movesCount = movesCount;
     }
 
     public LocalDateTime getCreatedAt() {

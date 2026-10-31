@@ -1,8 +1,9 @@
 package es.upm.etsisi.fis.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.upm.etsisi.fis.server.dto.auth.LoginRequest;
-import es.upm.etsisi.fis.server.dto.auth.RegisterRequest;
+import es.upm.etsisi.fis.server.dto.auth.*;
+import es.upm.etsisi.fis.server.entity.UserEntity;
+import es.upm.etsisi.fis.server.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,6 +31,9 @@ class AuthControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("Registro exitoso de nuevo usuario devuelve 201 y token JWT")
@@ -106,5 +111,116 @@ class AuthControllerIntegrationTest {
     void testGetProfileWithoutTokenForbidden() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Cambio exitoso de contrasena actualiza las credenciales")
+    void testChangePasswordSuccess() throws Exception {
+        // 1. Iniciar sesion
+        LoginRequest login = new LoginRequest("adrian", "password123");
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
+
+        // 2. Cambiar contrasena
+        ChangePasswordRequest changeReq = new ChangePasswordRequest("password123", "newSecretPassword123");
+        mockMvc.perform(put("/api/v1/auth/password")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(changeReq)))
+                .andExpect(status().isNoContent());
+
+        // 3. Probar nuevo login con la nueva contrasena
+        LoginRequest newLogin = new LoginRequest("adrian", "newSecretPassword123");
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newLogin)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Cambio de contrasena con contrasena actual incorrecta es rechazado")
+    void testChangePasswordWithWrongCurrentPassword() throws Exception {
+        LoginRequest login = new LoginRequest("admin", "admin123");
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
+
+        ChangePasswordRequest changeReq = new ChangePasswordRequest("wrongAdminPassword", "brandNewPassword123");
+        mockMvc.perform(put("/api/v1/auth/password")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(changeReq)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("Verificacion de correo con codigo OTP valido confirma el expediente del oficial")
+    void testVerifyEmailWithValidOtpSuccess() throws Exception {
+        // 1. Registrar usuario
+        RegisterRequest regReq = new RegisterRequest("cadet01", "cadet01@battleship.com", "password123");
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.emailVerified").value(false));
+
+        // 2. Obtener el codigo OTP generado en base de datos
+        UserEntity user = userRepository.findByUsername("cadet01").orElseThrow();
+        String validOtp = user.getVerificationOtp();
+
+        // 3. Verificar con OTP valido
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadet01", validOtp);
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.emailVerified").value(true))
+                .andExpect(jsonPath("$.token").isString());
+
+        // 4. Comprobar que en base de datos ya consta como verificado
+        UserEntity verifiedUser = userRepository.findByUsername("cadet01").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertTrue(verifiedUser.isEmailVerified());
+        org.junit.jupiter.api.Assertions.assertNull(verifiedUser.getVerificationOtp());
+    }
+
+    @Test
+    @DisplayName("Verificacion de correo con codigo OTP erroneo es rechazada con 400 Bad Request")
+    void testVerifyEmailWithInvalidOtpFails() throws Exception {
+        RegisterRequest regReq = new RegisterRequest("cadet02", "cadet02@battleship.com", "password123");
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated());
+
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadet02", "000000");
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyReq)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Reenvio de codigo OTP genera un nuevo PIN militar")
+    void testResendOtpSuccess() throws Exception {
+        RegisterRequest regReq = new RegisterRequest("cadet03", "cadet03@battleship.com", "password123");
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated());
+
+        ResendOtpRequest resendReq = new ResendOtpRequest("cadet03");
+        mockMvc.perform(post("/api/v1/auth/resend-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resendReq)))
+                .andExpect(status().isOk());
     }
 }

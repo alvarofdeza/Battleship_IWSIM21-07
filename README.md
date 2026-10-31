@@ -36,18 +36,18 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
   * `frontend/`: Aplicacion web reactiva con Next.js 16 (App Router), React 19, Tailwind CSS y estetica militar retro CRT.
 * **Interfaz Web Militar de Vanguardia (Combat Information Center):**
   * Diseno tactico naval estilo terminal CIC de la US Navy con escaneo CRT, efectos de vibracion de pantalla y pixel art.
-  * Dique seco interactivo para despliegue de flota con rotacion por atajos de teclado (`R` / `Espacio`), autodespliegue aleatorio y guardia de autenticacion.
+  * Dique seco interactivo para despliegue de flota con rotacion por atajos de teclado (`R` / `Espacio`), autodespliegue aleatorio y modo invitado de acceso rapido.
   * Sintetizador de audio nativo mediante Web Audio API (pings de sonar, disparos de artilleria, salpicaduras de agua, alarmas y fanfarria de victoria) con control de mute.
   * Cuadricula 10x10 con barrido de haz de radar y telemetria en tiempo real tipo teletipo con auto-scroll.
-  * Escalafon de oficiales (Admiralty Roll) con clasificacion global y marcas personales del jugador.
-* **Tres Niveles de Inteligencia Artificial (Strategy Pattern):**
-  * **Facil (BasicAlgorithm):** Distribucion pseudoaleatoria uniforme entre casillas inexploradas.
-  * **Normal (NormalAlgorithm - Hunt & Target):** Patron de paridad de ajedrez `(row + col) % 2 == 0` en modo caza; exploracion ortogonal y continuidad de linea en modo objetivo.
-  * **Experto (ExpertAlgorithm - Probability Density Heatmap):** Superposicion probabilistica matricial de barcos vivos sobre 10x10 con multiplicador ponderado x50 en vecindades de impactos activos e inspector visual de densidad.
-* **Seguridad Moderna y Autenticacion JWT:**
-  * Sustitucion del mock LDAP por Spring Security 6 stateless con JSON Web Tokens (JJWT 0.12.5).
-  * Cifrado criptografico seguro de contraseñas mediante `BCryptPasswordEncoder`.
-  * Filtro de seguridad `JwtAuthenticationFilter` y endpoints protegidos con rol de usuario.
+  * Doble escalafon de oficiales (Admiralty Roll): ranking de mejores partidas individuales y ranking de mejores oficiales por puntos acumulados de carrera.
+  * Expediente de Oficial (Profile): consulta de estadisticas personales, ultimas 10 partidas, top 10 historico, rango naval y gestion de credenciales.
+* **Sistema de Puntuacion Multidimensional y Anti-Farming:**
+  * Formula ponderada que premia la dificultad del combate (x1.0 a x2.5), la eficiencia de disparos (proximidad al minimo teorico de 14 impactos) y la velocidad de resolucion.
+  * Puntos de consolacion de honor en derrotas completas calculados por barcos enemigos hundidos antes de caer, con proteccion estricta frente a abandonos.
+* **Seguridad Moderna, Modo Invitado y Verificacion OTP:**
+  * Modo Invitado sin barreras de entrada con opcion de reclamar y persistir la puntuacion al finalizar el combate.
+  * Verificacion de correo electronico mediante codigo PIN militar de 6 digitos entregado en bandeja de entrada a traves de la API de Resend.
+  * Seguridad stateless basada en tokens Bearer JWT (JJWT 0.12.5) y contraseñas hasheadas con BCrypt.
 * **Documentacion Interactiva OpenAPI 3 / Swagger UI & Health Check:**
   * Especificacion viva disponible en tiempo real en `/swagger-ui.html` con soporte Bearer Token.
   * Endpoint de disponibilidad y monitorizacion cloud `/healthz` para orquestadores y pings keep-alive.
@@ -75,7 +75,7 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
 * **Frontend Web:** Next.js 16.4 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide Icons, Sonner, Canvas Confetti
 * **Audio y FX:** Web Audio API (sintetizador oscilador nativo sin assets externos)
 * **Documentacion API:** SpringDoc OpenAPI 2.5.0 / Swagger UI 5.13.0
-* **Seguridad & Tokens:** JJWT 0.12.5, BCrypt
+* **Seguridad & Tokens:** JJWT 0.12.5, BCrypt, Resend API (Emails transaccionales de verificacion OTP)
 * **Bases de Datos:** H2 Database (desarrollo y testing en memoria), PostgreSQL (configurado para produccion)
 * **Build & Dependency Management:** Apache Maven Wrapper (`mvnw` / `mvnw.cmd`), npm
 * **Testing:** JUnit 5 Jupiter 5.10.2, MockMvc, Mockito 5.11, AssertJ 3.25

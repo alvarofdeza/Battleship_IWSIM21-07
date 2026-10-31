@@ -17,6 +17,9 @@ public class ShotResponse {
     private boolean finished;
     private String winner;
     private String currentTurn;
+    private Long points;
+    private Integer movesCount;
+    private Long durationSeconds;
 
     public ShotResponse() {}
 
@@ -106,5 +109,29 @@ public class ShotResponse {
 
     public void setCurrentTurn(String currentTurn) {
         this.currentTurn = currentTurn;
+    }
+
+    public Long getPoints() {
+        return points;
+    }
+
+    public void setPoints(Long points) {
+        this.points = points;
+    }
+
+    public Integer getMovesCount() {
+        return movesCount;
+    }
+
+    public void setMovesCount(Integer movesCount) {
+        this.movesCount = movesCount;
+    }
+
+    public Long getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public void setDurationSeconds(Long durationSeconds) {
+        this.durationSeconds = durationSeconds;
     }
 }

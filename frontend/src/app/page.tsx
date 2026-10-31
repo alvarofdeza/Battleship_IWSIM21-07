@@ -3,7 +3,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
-import { Crosshair, Shield, Activity, RotateCcw, Eye, EyeOff, Radio } from 'lucide-react';
+import {
+  Crosshair,
+  Shield,
+  Activity,
+  RotateCcw,
+  Eye,
+  EyeOff,
+  Radio,
+  Award,
+  CheckCircle2,
+  Trophy,
+} from 'lucide-react';
 
 import { Header } from '@/components/Header';
 import { AuthModal } from '@/components/AuthModal';
@@ -11,21 +22,32 @@ import { FleetPlacement } from '@/components/FleetPlacement';
 import { CombatGrid } from '@/components/CombatGrid';
 import { TelemetryLog } from '@/components/TelemetryLog';
 import { LeaderboardModal } from '@/components/LeaderboardModal';
+import { ProfileModal } from '@/components/ProfileModal';
 
 import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
-import { AiDifficulty, GameSummary, MoveHistoryItem, PlacedShip, UserProfile } from '@/lib/types';
+import {
+  AiDifficulty,
+  GameSummary,
+  MoveHistoryItem,
+  PlacedShip,
+  UserProfile,
+  UserStats,
+} from '@/lib/types';
 
 /**
  * Componente principal de la sala de mando tactica (Combat Information Center).
- * Coordina las fases de despliegue de flota, combate interactivo y evaluacion de records.
+ * Coordina el modo invitado sin barreras, despliegue de flota, combate interactivo,
+ * sistema de puntuacion multidimensional, reclamacion de partidas y expediente militar.
  */
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [phase, setPhase] = useState<'DEPLOYMENT' | 'COMBAT' | 'GAMEOVER'>('DEPLOYMENT');
   const [crtActive, setCrtActive] = useState<boolean>(true);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
   // Estado de la partida activa
@@ -36,9 +58,27 @@ export default function Home() {
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
   const [screenShake, setScreenShake] = useState<boolean>(false);
 
+  // Telemetria final de combate y reclamacion de puntos
+  const [finalPoints, setFinalPoints] = useState<number | null>(null);
+  const [finalMoves, setFinalMoves] = useState<number | null>(null);
+  const [finalDuration, setFinalDuration] = useState<number | null>(null);
+  const [isVictory, setIsVictory] = useState<boolean>(false);
+  const [isClaimed, setIsClaimed] = useState<boolean>(false);
+  const [isClaiming, setIsClaiming] = useState<boolean>(false);
+
   // Pestana activa en dispositivos moviles: Ataque o Defensa
   const [mobileTab, setMobileTab] = useState<'ATTACK' | 'DEFENSE'>('ATTACK');
   const [showAiHeatmap, setShowAiHeatmap] = useState<boolean>(false);
+
+  // Carga de estadisticas de carrera del oficial
+  const fetchUserStats = useCallback(async () => {
+    try {
+      const stats = await api.getMyStats();
+      setUserStats(stats);
+    } catch {
+      setUserStats(null);
+    }
+  }, []);
 
   // Verificacion de sesion en el montaje del componente
   useEffect(() => {
@@ -47,13 +87,16 @@ export default function Home() {
         try {
           const profile = await api.getMe();
           setUser(profile);
+          fetchUserStats();
         } catch {
           api.logout();
+          setUser(null);
+          setUserStats(null);
         }
       }
     };
     checkUser();
-  }, []);
+  }, [fetchUserStats]);
 
   /**
    * Activa el efecto visual de vibracion sismica en la pantalla tras un impacto critico.
@@ -64,23 +107,18 @@ export default function Home() {
   };
 
   /**
-   * Valida la autorizacion de mando e inicializa la sesion de combate contra el adversario IA.
-   * Si el usuario no ha iniciado sesion, detiene la operacion y solicita credenciales.
+   * Inicializa la sesion de combate contra el bot de IA.
+   * Admite juego inmediato tanto para oficiales autenticados como en Modo Invitado.
    *
    * @param _ships Lista de buques colocados en el tablero defensivo.
    * @param difficulty Nivel de dificultad estrategica de la IA enemiga.
    */
   const handleStartGame = async (_ships: PlacedShip[], difficulty: AiDifficulty) => {
-    if (!user) {
-      sounds.playShipSunkAlarm();
-      toast.error('OFFICER CLEARANCE REQUIRED: PLEASE SIGN IN TO TRANSMIT FLEET ORDERS');
-      setIsAuthOpen(true);
-      return;
-    }
-
     sounds.playSonarPing();
     setLoading(true);
     setAiDifficulty(difficulty);
+    setIsClaimed(false);
+    setFinalPoints(null);
 
     try {
       const summary = await api.createGame(difficulty);
@@ -89,7 +127,12 @@ export default function Home() {
       setLastAttack(null);
       setPhase('COMBAT');
       setMobileTab('ATTACK');
-      toast.success(`FLEET DEPLOYED &bull; ENGAGING ENEMY [AI-${difficulty}]`);
+
+      if (!user) {
+        toast.info(`MODO INVITADO &bull; ENFRENTANDO A IA [${difficulty}]`);
+      } else {
+        toast.success(`FLOTA DESPLEGADA &bull; ORDEN DE COMBATE EN TRANSMISION [AI-${difficulty}]`);
+      }
     } catch (err: unknown) {
       sounds.playShipSunkAlarm();
       const msg = err instanceof Error ? err.message : 'FAILED TO INITIALIZE ENGAGEMENT';
@@ -115,7 +158,7 @@ export default function Home() {
     try {
       const shot = await api.fireShot(game.gameId, row, col);
 
-      // Evaluate human player shot audio & visual response
+      // Evaluar sonido y efectos visuales segun el impacto
       if (shot.playerShotResult === 'Hit') {
         sounds.playExplosion();
         triggerShake();
@@ -128,7 +171,7 @@ export default function Home() {
         sounds.playWaterSplash();
       }
 
-      // Refresh game state and history
+      // Actualizar estado del juego e historial
       const [updatedSummary, updatedHistory] = await Promise.all([
         api.getGame(game.gameId),
         api.getGameHistory(game.gameId),
@@ -137,14 +180,20 @@ export default function Home() {
       setGame(updatedSummary);
       setLogs(updatedHistory);
 
-      // Check victory / game over
+      // Comprobar fin de la batalla naval
       if (shot.finished) {
         setPhase('GAMEOVER');
-        if (shot.winner === game.player1) {
+        const humanWon = shot.winner === game.player1;
+        setIsVictory(humanWon);
+        setFinalPoints(shot.points || 0);
+        setFinalMoves(shot.movesCount || updatedHistory.length);
+        setFinalDuration(shot.durationSeconds || 0);
+
+        if (humanWon) {
           sounds.playVictoryFanfare();
           confetti({
-            particleCount: 120,
-            spread: 80,
+            particleCount: 130,
+            spread: 85,
             origin: { y: 0.6 },
             colors: ['#00ff66', '#00e5ff', '#ffaa00'],
           });
@@ -152,6 +201,11 @@ export default function Home() {
         } else {
           sounds.playShipSunkAlarm();
           toast.error('DEFEAT &bull; YOUR FLEET HAS BEEN SUNK');
+        }
+
+        // Si el oficial estaba autenticado, refrescar su expediente de inmediato
+        if (user) {
+          fetchUserStats();
         }
       }
     } catch (err: unknown) {
@@ -164,6 +218,50 @@ export default function Home() {
   };
 
   /**
+   * Reclama la partida jugada como invitado y la asocia a la cuenta autenticada.
+   */
+  const handleClaimPoints = async () => {
+    if (!game) return;
+    sounds.playClick();
+    setIsClaiming(true);
+
+    try {
+      await api.claimGame(game.gameId);
+      setIsClaimed(true);
+      sounds.playVictoryFanfare();
+      toast.success(`PUNTOS RECLAMADOS CON EXITO // REGISTRADOS EN TU EXPEDIENTE`);
+      fetchUserStats();
+    } catch (err: unknown) {
+      sounds.playShipSunkAlarm();
+      const msg = err instanceof Error ? err.message : 'FAILED TO CLAIM SCORE';
+      toast.error(msg);
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+
+  /**
+   * Callback tras un login o registro exitoso.
+   */
+  const handleAuthSuccess = async (profile: UserProfile) => {
+    setUser(profile);
+    setIsAuthOpen(false);
+
+    // Si estabamos en pantalla de fin de partida como invitado, reclamar de inmediato
+    if (phase === 'GAMEOVER' && game && !isClaimed) {
+      try {
+        await api.claimGame(game.gameId);
+        setIsClaimed(true);
+        sounds.playVictoryFanfare();
+        toast.success(`PUNTOS RECLAMADOS CON EXITO // VINCULADOS A ${profile.username.toUpperCase()}`);
+      } catch {
+        // Ignorar si ya fue reclamada
+      }
+    }
+    fetchUserStats();
+  };
+
+  /**
    * Restablece el teatro de operaciones al fondeadero para un nuevo despliegue de flota.
    */
   const handleResetToDeployment = () => {
@@ -172,6 +270,14 @@ export default function Home() {
     setGame(null);
     setLogs([]);
     setLastAttack(null);
+    setFinalPoints(null);
+    setIsClaimed(false);
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -179,13 +285,16 @@ export default function Home() {
       {/* Barra superior de mando naval */}
       <Header
         user={user}
+        stats={userStats}
         crtActive={crtActive}
         onToggleCrt={() => setCrtActive((prev) => !prev)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
         onLogout={() => {
           api.logout();
           setUser(null);
+          setUserStats(null);
           toast.info('OFFICER LOGGED OUT');
         }}
       />
@@ -251,7 +360,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mobile View Tab Switcher (Visible on small screens) */}
+            {/* Mobile View Tab Switcher */}
             <div className="grid grid-cols-2 lg:hidden gap-2">
               <button
                 onClick={() => {
@@ -283,9 +392,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Combat Theaters (Desktop: Side by Side | Mobile: Tab Toggled) */}
+            {/* Combat Theaters */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-              {/* Defense Grid: Own Vessels */}
+              {/* Defense Grid */}
               <div className={`${mobileTab === 'DEFENSE' ? 'block' : 'hidden lg:block'}`}>
                 <CombatGrid
                   title="DEFENSIVE ANCHORAGE"
@@ -295,7 +404,7 @@ export default function Home() {
                 />
               </div>
 
-              {/* Attack Grid: Enemy Radar (Fog of War) */}
+              {/* Attack Grid */}
               <div className={`${mobileTab === 'ATTACK' ? 'block' : 'hidden lg:block'}`}>
                 <CombatGrid
                   title="TARGETING RADAR &bull; ENEMY WATERS"
@@ -329,44 +438,107 @@ export default function Home() {
           </div>
         )}
 
-        {/* Phase 3: Game Over Modal Overlay */}
+        {/* Phase 3: Game Over Modal Overlay with Scoring Breakdown & Score Claiming */}
         {phase === 'GAMEOVER' && game && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
-            <div className="w-full max-w-md bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 text-center space-y-4 shadow-2xl">
-              <div className="w-16 h-16 mx-auto border-2 flex items-center justify-center rounded-full bg-[#050b14] border-[#00ff66]">
-                <Activity className="w-8 h-8 text-[#00ff66]" />
+            <div className="w-full max-w-lg bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 text-center space-y-4 shadow-2xl">
+              <div
+                className={`w-16 h-16 mx-auto border-2 flex items-center justify-center rounded-full bg-[#050b14] ${
+                  isVictory ? 'border-[#00ff66]' : 'border-[#ff3344]'
+                }`}
+              >
+                <Activity className={`w-8 h-8 ${isVictory ? 'text-[#00ff66]' : 'text-[#ff3344]'}`} />
               </div>
 
               <h2
                 className={`font-['Press_Start_2P'] text-sm tracking-wider ${
-                  game.winner === game.player1
-                    ? 'text-[#00ff66] glow-radar'
-                    : 'text-[#ff3344] glow-combat'
+                  isVictory ? 'text-[#00ff66] glow-radar' : 'text-[#ff3344] glow-combat'
                 }`}
               >
-                {game.winner === game.player1
+                {isVictory
                   ? 'VICTORY &bull; ADMIRALTY CITATION'
-                  : 'VESSEL LOST &bull; MISSION FAILED'}
+                  : 'VESSEL LOST &bull; DEFEAT OF HONOR'}
               </h2>
 
               <p className="text-xs text-[#8fa5bf] font-mono leading-relaxed">
-                {game.winner === game.player1
-                  ? `Outstanding strategic leadership, Officer ${game.player1.toUpperCase()}. Enemy fleet completely annihilated in sector #${game.gameId}.`
-                  : `Your flagship and defense grid have succumbed to enemy artillery barrage in sector #${game.gameId}.`}
+                {isVictory
+                  ? `Strategic mastery confirmed, Commander ${game.player1.toUpperCase()}. Enemy naval division annihilated in sector #${game.gameId}.`
+                  : `Your flagship has been sunk in sector #${game.gameId}. Consolation citations awarded for enemy tonnage destroyed.`}
               </p>
 
-              <div className="p-3 border border-[#1a2d4f] bg-[#050b14] font-mono text-xs flex justify-around">
-                <div>
-                  <div className="text-[10px] text-[#536780]">TOTAL SHOTS</div>
-                  <div className="text-sm font-bold text-[#e2ecf7]">{logs.length}</div>
+              {/* Multi-Dimensional Score Breakdown Card */}
+              <div className="border border-[#1a2d4f] bg-[#050b14] p-4 font-mono text-xs text-left space-y-2">
+                <div className="flex justify-between items-center pb-2 border-b border-[#1a2d4f]">
+                  <span className="text-[#8fa5bf]">PUNTUACION OBTENIDA:</span>
+                  <span className="text-base font-bold text-[#ffaa00]">
+                    {finalPoints !== null ? finalPoints.toLocaleString() : 0} PTS
+                  </span>
                 </div>
-                <div>
-                  <div className="text-[10px] text-[#536780]">DIFFICULTY</div>
-                  <div className="text-sm font-bold text-[#ffaa00]">{aiDifficulty}</div>
+
+                <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                  <div>
+                    <div className="text-[10px] text-[#536780]">DISPAROS</div>
+                    <div className="font-bold text-white mt-0.5">{finalMoves || logs.length}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#536780]">DIFICULTAD</div>
+                    <div className="font-bold text-[#ffaa00] mt-0.5">{aiDifficulty}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#536780]">DURACION</div>
+                    <div className="font-bold text-[#38bdf8] mt-0.5">
+                      {finalDuration ? formatDuration(finalDuration) : '-'}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              {/* Guest Score Claiming Box */}
+              {!user && !isClaimed && (
+                <div className="p-3 border-2 border-[#ffaa00] bg-[#ffaa00]/10 text-center space-y-2 bezel-tactical">
+                  <div className="text-[#ffaa00] font-['Press_Start_2P'] text-[10px]">
+                    MODO INVITADO &bull; {finalPoints?.toLocaleString()} PTS
+                  </div>
+                  <p className="text-xs text-[#8fa5bf] font-mono leading-relaxed">
+                    ¿Deseas registrarte para guardar tu puntuacion en el Escalafon Militar y desbloquear tu rango naval?
+                  </p>
+                  <button
+                    onClick={() => setIsAuthOpen(true)}
+                    className="w-full py-2.5 bg-[#ffaa00] hover:bg-[#e69900] text-black font-mono font-bold text-xs uppercase bezel-tactical-btn flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(255,170,0,0.35)]"
+                  >
+                    <Award className="w-4 h-4" />
+                    RECLAMAR PUNTOS E INSCRIBIRSE
+                  </button>
+                </div>
+              )}
+
+              {/* Authenticated user claiming (if played as guest and logged in) */}
+              {user && !isClaimed && game.player1 === 'Guest' && (
+                <div className="p-3 border-2 border-[#00ff66] bg-[#00ff66]/10 text-center space-y-2">
+                  <p className="text-xs text-[#8fa5bf] font-mono">
+                    Sesion activa como <strong className="text-white">{user.username}</strong>. Vincula estos {finalPoints} PTS a tu expediente militar.
+                  </p>
+                  <button
+                    onClick={handleClaimPoints}
+                    disabled={isClaiming}
+                    className="w-full py-2 bg-[#00ff66] hover:bg-[#00cc52] text-black font-mono font-bold text-xs uppercase bezel-tactical-btn flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {isClaiming ? 'VINCULANDO...' : 'VINCULAR PUNTOS A MI EXPEDIENTE'}
+                  </button>
+                </div>
+              )}
+
+              {/* Confirmed claim feedback */}
+              {isClaimed && (
+                <div className="p-2 border border-[#00ff66] bg-[#00ff66]/10 text-[#00ff66] font-mono text-xs flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>PUNTUACION REGISTRADA EN EL ESCALAFON DE LA ARMADA</span>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={handleResetToDeployment}
                   className="flex-1 py-2.5 bg-[#00ff66] hover:bg-[#00cc52] text-black font-['Press_Start_2P'] text-[10px] tracking-wider bezel-tactical-btn font-bold uppercase"
@@ -375,9 +547,10 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => setIsLeaderboardOpen(true)}
-                  className="px-3 py-2.5 border border-[#ffaa00] text-[#ffaa00] hover:bg-[#ffaa00]/15 font-mono text-xs font-bold"
+                  className="px-4 py-2.5 border border-[#ffaa00] text-[#ffaa00] hover:bg-[#ffaa00]/15 font-mono text-xs font-bold flex items-center gap-1.5"
                 >
-                  ROLL
+                  <Trophy className="w-4 h-4" />
+                  <span>ESCALAFON</span>
                 </button>
               </div>
             </div>
@@ -385,18 +558,28 @@ export default function Home() {
         )}
       </main>
 
-      {/* Modals */}
+      {/* Modales del sistema */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-        onSuccess={(profile) => setUser(profile)}
+        onSuccess={handleAuthSuccess}
       />
 
       <LeaderboardModal
         isOpen={isLeaderboardOpen}
         onClose={() => setIsLeaderboardOpen(false)}
-        isLoggedIn={!!user}
       />
+
+      {user && (
+        <ProfileModal
+          isOpen={isProfileOpen}
+          onClose={() => {
+            setIsProfileOpen(false);
+            fetchUserStats();
+          }}
+          user={user}
+        />
+      )}
     </div>
   );
 }

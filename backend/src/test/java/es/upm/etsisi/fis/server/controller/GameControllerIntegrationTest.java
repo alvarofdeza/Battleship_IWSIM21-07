@@ -172,4 +172,54 @@ class GameControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.player2").value("AI-Expert"));
     }
+
+    @Test
+    @DisplayName("Modo invitado: crear partida y disparar sin token de autenticacion")
+    void testCreateAndPlayGuestGameWithoutAuth() throws Exception {
+        // 1. Crear partida como invitado (sin token)
+        CreateGameRequest request = new CreateGameRequest("NORMAL");
+
+        MvcResult result = mockMvc.perform(post("/api/v1/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.player1").value("Guest"))
+                .andReturn();
+
+        String gameId = objectMapper.readTree(result.getResponse().getContentAsString()).get("gameId").asText();
+
+        // 2. Disparar sin token
+        FireShotRequest shotReq = new FireShotRequest(0, 0);
+        mockMvc.perform(post("/api/v1/games/" + gameId + "/shots")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(shotReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(gameId));
+    }
+
+    @Test
+    @DisplayName("Reclamar partida sin token JWT es rechazado con 403 Forbidden")
+    void testClaimGameWithoutTokenForbidden() throws Exception {
+        mockMvc.perform(post("/api/v1/games/dummy-id/claim"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Reclamar partida aun en curso rechaza la peticion")
+    void testClaimUnfinishedGameFails() throws Exception {
+        // Crear partida de invitado
+        CreateGameRequest request = new CreateGameRequest("EASY");
+        MvcResult result = mockMvc.perform(post("/api/v1/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String gameId = objectMapper.readTree(result.getResponse().getContentAsString()).get("gameId").asText();
+
+        // Intentar reclamarla antes de finalizar el combate
+        mockMvc.perform(post("/api/v1/games/" + gameId + "/claim")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().is4xxClientError());
+    }
 }

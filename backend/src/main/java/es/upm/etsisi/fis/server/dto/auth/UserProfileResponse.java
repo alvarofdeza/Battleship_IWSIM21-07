@@ -10,15 +10,21 @@ public class UserProfileResponse {
     private String username;
     private String email;
     private String role;
+    private boolean emailVerified;
     private LocalDateTime createdAt;
 
     public UserProfileResponse() {}
 
     public UserProfileResponse(Long id, String username, String email, String role, LocalDateTime createdAt) {
+        this(id, username, email, role, true, createdAt);
+    }
+
+    public UserProfileResponse(Long id, String username, String email, String role, boolean emailVerified, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.role = role;
+        this.emailVerified = emailVerified;
         this.createdAt = createdAt;
     }
 
@@ -52,6 +58,14 @@ public class UserProfileResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public LocalDateTime getCreatedAt() {

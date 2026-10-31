@@ -3,7 +3,7 @@
 import React from 'react';
 import { Volume2, VolumeX, Monitor, Shield, Trophy, User, LogOut } from 'lucide-react';
 import { sounds } from '@/lib/sound';
-import { UserProfile } from '@/lib/types';
+import { UserProfile, UserStats } from '@/lib/types';
 
 /**
  * Propiedades de configuracion para la barra superior de mando naval.
@@ -11,6 +11,8 @@ import { UserProfile } from '@/lib/types';
 interface HeaderProps {
   /** Perfil del oficial autenticado o nulo si no ha iniciado sesion. */
   user: UserProfile | null;
+  /** Estadisticas de carrera del oficial. */
+  stats?: UserStats | null;
   /** Estado de activacion del filtro de pantalla CRT retro. */
   crtActive: boolean;
   /** Alterna la activacion de las lineas de exploracion CRT. */
@@ -19,6 +21,8 @@ interface HeaderProps {
   onOpenAuth: () => void;
   /** Despliega el escalafon de oficiales y tabla de clasificacion global. */
   onOpenLeaderboard: () => void;
+  /** Despliega el expediente militar del oficial autenticado. */
+  onOpenProfile?: () => void;
   /** Cierra la sesion del oficial activo. */
   onLogout: () => void;
 }
@@ -29,10 +33,12 @@ interface HeaderProps {
  */
 export const Header: React.FC<HeaderProps> = ({
   user,
+  stats,
   crtActive,
   onToggleCrt,
   onOpenAuth,
   onOpenLeaderboard,
+  onOpenProfile,
   onLogout,
 }) => {
   const [muted, setMuted] = React.useState(sounds.isMuted());
@@ -126,19 +132,33 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">ADMIRALTY ROLL</span>
           </button>
 
-          {/* Auth Button */}
+          {/* Auth Button / Profile Pill */}
           {user ? (
-            <div className="flex items-center gap-2 border border-[#233b66] bg-[#060c18] px-2.5 py-1">
-              <User className="w-3.5 h-3.5 text-[#00ff66]" />
-              <span className="text-[11px] text-[#00ff66] font-mono uppercase font-bold tracking-wider">
-                {user.username}
-              </span>
+            <div className="flex items-center gap-1.5 border border-[#233b66] bg-[#060c18] px-2 py-1">
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  onOpenProfile?.();
+                }}
+                className="flex items-center gap-1.5 text-left hover:opacity-80 transition-opacity"
+                title="Abrir Expediente de Oficial"
+              >
+                <User className="w-3.5 h-3.5 text-[#00ff66]" />
+                <span className="text-[11px] text-[#00ff66] font-mono uppercase font-bold tracking-wider">
+                  {user.username}
+                </span>
+                {stats && (
+                  <span className="hidden md:inline-block px-1.5 py-0.2 text-[9px] font-mono font-bold bg-[#ffaa00]/15 text-[#ffaa00] border border-[#ffaa00]/30 rounded">
+                    {stats.totalPoints.toLocaleString()} PTS
+                  </span>
+                )}
+              </button>
               <button
                 onClick={() => {
                   sounds.playClick();
                   onLogout();
                 }}
-                className="text-[#ff3344] hover:text-white ml-1 p-0.5"
+                className="text-[#ff3344] hover:text-white ml-1.5 p-0.5"
                 title="Disconnect from Command"
               >
                 <LogOut className="w-3 h-3" />

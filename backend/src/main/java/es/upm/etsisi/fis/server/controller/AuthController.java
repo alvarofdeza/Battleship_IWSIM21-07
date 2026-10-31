@@ -1,9 +1,6 @@
 package es.upm.etsisi.fis.server.controller;
 
-import es.upm.etsisi.fis.server.dto.auth.AuthResponse;
-import es.upm.etsisi.fis.server.dto.auth.LoginRequest;
-import es.upm.etsisi.fis.server.dto.auth.RegisterRequest;
-import es.upm.etsisi.fis.server.dto.auth.UserProfileResponse;
+import es.upm.etsisi.fis.server.dto.auth.*;
 import es.upm.etsisi.fis.server.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,10 +39,32 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/verify-email")
+    @Operation(summary = "Verificar correo con codigo OTP", description = "Valida el PIN militar de 6 digitos y activa el registro de records en el escalafon.")
+    public ResponseEntity<AuthResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        AuthResponse response = authService.verifyEmail(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/resend-code")
+    @Operation(summary = "Reenviar codigo OTP", description = "Genera y envia un nuevo PIN de 6 digitos al correo del usuario.")
+    public ResponseEntity<Void> resendCode(@Valid @RequestBody ResendOtpRequest request) {
+        authService.resendVerificationCode(request);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Consultar perfil actual", description = "Devuelve los datos del usuario autenticado a partir del token JWT Bearer.")
     public ResponseEntity<UserProfileResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         UserProfileResponse profile = authService.getProfile(userDetails.getUsername());
         return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/password")
+    @Operation(summary = "Cambiar contrasena", description = "Actualiza la contrasena del usuario autenticado tras validar la actual.")
+    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal UserDetails userDetails,
+                                               @Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(userDetails.getUsername(), request);
+        return ResponseEntity.noContent().build();
     }
 }

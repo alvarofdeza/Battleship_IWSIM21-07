@@ -35,6 +35,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Gestiona excepciones de estado invalido en las operaciones del juego.
+     *
+     * @param ex Excepcion de estado ilegal.
+     * @return Respuesta HTTP 400 Bad Request.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Invalid State");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
      * Gestiona excepciones de recursos no encontrados.
      *
      * @param ex Excepcion de recurso no encontrado.

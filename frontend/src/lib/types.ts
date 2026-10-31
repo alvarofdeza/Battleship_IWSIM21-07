@@ -49,6 +49,8 @@ export interface UserProfile {
   username: string;
   email: string;
   role: string;
+  emailVerified?: boolean;
+  createdAt?: string;
 }
 
 /**
@@ -60,6 +62,7 @@ export interface AuthResponse {
   username: string;
   email: string;
   role: string;
+  emailVerified?: boolean;
 }
 
 /**
@@ -92,6 +95,9 @@ export interface ShotResponse {
   finished: boolean;
   winner?: string | null;
   currentTurn?: string | null;
+  points?: number;
+  movesCount?: number;
+  durationSeconds?: number;
 }
 
 /**
@@ -116,4 +122,43 @@ export interface ScoreItem {
   points: number;
   gameId: string;
   recordedAt: string;
+}
+
+/**
+ * Partida individual con metadatos completos y resultado en el escalafon.
+ */
+export interface MatchScoreItem {
+  id: number;
+  username: string;
+  points: number;
+  gameId: string;
+  difficulty: string;
+  durationSeconds: number;
+  movesCount: number;
+  result: 'VICTORY' | 'DEFEAT' | string;
+  recordedAt: string;
+}
+
+/**
+ * Oficial en el ranking por acumulacion de puntos totales de carrera.
+ */
+export interface PlayerRankingItem {
+  username: string;
+  totalPoints: number;
+  totalGames: number;
+  totalWins: number;
+  navalRank: string;
+}
+
+/**
+ * Estadisticas y balance consolidado del expediente militar del oficial.
+ */
+export interface UserStats {
+  username: string;
+  totalPoints: number;
+  totalGames: number;
+  totalWins: number;
+  totalLosses: number;
+  winRate: number;
+  navalRank: string;
 }

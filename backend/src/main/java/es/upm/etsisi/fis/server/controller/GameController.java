@@ -1,6 +1,7 @@
 package es.upm.etsisi.fis.server.controller;
 
 import es.upm.etsisi.fis.server.dto.game.*;
+import es.upm.etsisi.fis.server.dto.leaderboard.MatchScoreResponse;
 import es.upm.etsisi.fis.server.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controlador REST para la creacion, consulta y disparo de ataques en partidas de Batalla Naval.
+ * Controlador REST para la creacion, consulta, disparo de ataques y reclamacion de partidas en modo solitario e invitado.
  */
 @RestController
 @RequestMapping("/api/v1/games")
@@ -28,13 +29,15 @@ public class GameController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear partida contra la IA", description = "Inicializa una nueva partida contra un bot configurado en la dificultad seleccionada (EASY, NORMAL, HARD).")
+    @Operation(summary = "Crear partida contra la IA", description = "Inicializa una nueva partida contra un bot en la dificultad seleccionada. Permite juego como invitado o autenticado.")
     public ResponseEntity<GameSummaryResponse> createGame(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody(required = false) CreateGameRequest request
     ) {
         String difficulty = (request != null && request.getAiDifficulty() != null) ? request.getAiDifficulty() : "NORMAL";
-        GameSummaryResponse response = gameService.createSoloGame(userDetails.getUsername(), difficulty);
+        String username = (userDetails != null) ? userDetails.getUsername() : "Guest";
+        boolean isGuest = (userDetails == null);
+        GameSummaryResponse response = gameService.createSoloGame(username, difficulty, isGuest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -44,7 +47,8 @@ public class GameController {
             @PathVariable("gameId") String gameId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        GameSummaryResponse summary = gameService.getGameSummary(gameId, userDetails.getUsername());
+        String username = (userDetails != null) ? userDetails.getUsername() : "Guest";
+        GameSummaryResponse summary = gameService.getGameSummary(gameId, username);
         return ResponseEntity.ok(summary);
     }
 
@@ -55,8 +59,19 @@ public class GameController {
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody FireShotRequest request
     ) {
-        ShotResponse shotResponse = gameService.processShot(gameId, userDetails.getUsername(), request.getRow(), request.getCol());
+        String username = (userDetails != null) ? userDetails.getUsername() : "Guest";
+        ShotResponse shotResponse = gameService.processShot(gameId, username, request.getRow(), request.getCol());
         return ResponseEntity.ok(shotResponse);
+    }
+
+    @PostMapping("/{gameId}/claim")
+    @Operation(summary = "Reclamar partida de invitado", description = "Asocia una partida finalizada como invitado a la cuenta del oficial autenticado y persiste la puntuacion.")
+    public ResponseEntity<MatchScoreResponse> claimGame(
+            @PathVariable("gameId") String gameId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        MatchScoreResponse response = gameService.claimGame(gameId, userDetails.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{gameId}/history")

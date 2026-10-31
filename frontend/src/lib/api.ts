@@ -1,4 +1,14 @@
-import { AuthResponse, GameSummary, MoveHistoryItem, ScoreItem, ShotResponse, UserProfile } from './types';
+import {
+  AuthResponse,
+  GameSummary,
+  MatchScoreItem,
+  MoveHistoryItem,
+  PlayerRankingItem,
+  ScoreItem,
+  ShotResponse,
+  UserProfile,
+  UserStats,
+} from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
@@ -69,7 +79,6 @@ class ApiClient {
     if (!response.ok) {
       let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
 
-      // Manejo intuitivo y especifico para accesos denegados por falta de autenticacion
       if (response.status === 403 || response.status === 401) {
         errorMessage = 'OFFICER CLEARANCE REQUIRED: PLEASE SIGN IN TO PROCEED';
       } else {
@@ -96,10 +105,6 @@ class ApiClient {
 
   /**
    * Inicia sesion en el backend mediante nombre de usuario y contraseña.
-   *
-   * @param username Nombre de usuario o correo electronico.
-   * @param password Contraseña en texto plano.
-   * @returns Datos de sesion y token JWT generado.
    */
   public async login(username: string, password: string): Promise<AuthResponse> {
     const data = await this.request<AuthResponse>('/auth/login', {
@@ -111,12 +116,7 @@ class ApiClient {
   }
 
   /**
-   * Registra una nueva cuenta de jugador en el servidor.
-   *
-   * @param username Nombre de usuario unico.
-   * @param email Correo electronico institucional o de contacto.
-   * @param password Contraseña de seguridad.
-   * @returns Datos de la cuenta creada y token inicial.
+   * Registra una nueva cuenta de jugador en el servidor y despacha el correo de verificacion OTP.
    */
   public async register(username: string, email: string, password: string): Promise<AuthResponse> {
     const data = await this.request<AuthResponse>('/auth/register', {
@@ -128,9 +128,39 @@ class ApiClient {
   }
 
   /**
+   * Verifica el correo del usuario mediante el PIN militar de 6 digitos.
+   */
+  public async verifyEmail(identifier: string, code: string): Promise<AuthResponse> {
+    const data = await this.request<AuthResponse>('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, code }),
+    });
+    this.setToken(data.token);
+    return data;
+  }
+
+  /**
+   * Solicita el reenvio de un nuevo PIN militar de 6 digitos.
+   */
+  public async resendCode(identifier: string): Promise<void> {
+    await this.request<void>('/auth/resend-code', {
+      method: 'POST',
+      body: JSON.stringify({ identifier }),
+    });
+  }
+
+  /**
+   * Actualiza la contrasena del oficial tras validar la credencial actual.
+   */
+  public async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await this.request<void>('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
+  /**
    * Obtiene la informacion del perfil del oficial autenticado.
-   *
-   * @returns Datos del usuario actual segun el token Bearer.
    */
   public async getMe(): Promise<UserProfile> {
     return this.request<UserProfile>('/auth/me');
@@ -147,9 +177,6 @@ class ApiClient {
 
   /**
    * Crea una nueva partida en solitario contra la Inteligencia Artificial.
-   *
-   * @param aiDifficulty Nivel de dificultad algoritmica (EASY, NORMAL, HARD).
-   * @returns Resumen de la partida con el identificador y tableros iniciales.
    */
   public async createGame(aiDifficulty: string = 'NORMAL'): Promise<GameSummary> {
     return this.request<GameSummary>('/games', {
@@ -160,9 +187,6 @@ class ApiClient {
 
   /**
    * Consulta el estado actual de una partida con niebla de guerra.
-   *
-   * @param gameId Identificador alfanumerico de la partida.
-   * @returns Resumen del estado actual del combate.
    */
   public async getGame(gameId: string): Promise<GameSummary> {
     return this.request<GameSummary>(`/games/${gameId}`);
@@ -170,11 +194,6 @@ class ApiClient {
 
   /**
    * Ejecuta un disparo tactico sobre las coordenadas indicadas del tablero enemigo.
-   *
-   * @param gameId Identificador de la partida.
-   * @param row Numero de fila (0-9).
-   * @param col Numero de columna (0-9).
-   * @returns Resultado del disparo propio y del contraataque automatico de la IA.
    */
   public async fireShot(gameId: string, row: number, col: number): Promise<ShotResponse> {
     return this.request<ShotResponse>(`/games/${gameId}/shots`, {
@@ -184,30 +203,67 @@ class ApiClient {
   }
 
   /**
+   * Reclama una partida finalizada como invitado vinculandola a la cuenta autenticada.
+   */
+  public async claimGame(gameId: string): Promise<MatchScoreItem> {
+    return this.request<MatchScoreItem>(`/games/${gameId}/claim`, {
+      method: 'POST',
+    });
+  }
+
+  /**
    * Recupera la cronologia completa de disparos efectuados durante la partida.
-   *
-   * @param gameId Identificador de la partida.
-   * @returns Lista de movimientos ordenados cronologicamente.
    */
   public async getGameHistory(gameId: string): Promise<MoveHistoryItem[]> {
     return this.request<MoveHistoryItem[]>(`/games/${gameId}/history`);
   }
 
-  // --- Endpoints de Clasificaciones ---
+  // --- Endpoints de Clasificaciones y Expedientes ---
 
   /**
-   * Consulta el historial de las diez mejores puntuaciones del oficial en sesion.
-   *
-   * @returns Lista de puntuaciones personales.
+   * Top 10 mejores partidas individuales disputadas en la plataforma.
+   */
+  public async getTopMatches(): Promise<MatchScoreItem[]> {
+    return this.request<MatchScoreItem[]>('/leaderboard/matches');
+  }
+
+  /**
+   * Top 10 oficiales de la marina por suma total de puntos acumulados.
+   */
+  public async getTopPlayers(): Promise<PlayerRankingItem[]> {
+    return this.request<PlayerRankingItem[]>('/leaderboard/players');
+  }
+
+  /**
+   * Top 10 mejores partidas del oficial autenticado.
+   */
+  public async getMyMatches(): Promise<MatchScoreItem[]> {
+    return this.request<MatchScoreItem[]>('/leaderboard/me/matches');
+  }
+
+  /**
+   * Ultimas 10 partidas disputadas por el oficial autenticado.
+   */
+  public async getMyRecentMatches(): Promise<MatchScoreItem[]> {
+    return this.request<MatchScoreItem[]>('/leaderboard/me/recent');
+  }
+
+  /**
+   * Balance de carrera y rango naval del oficial autenticado.
+   */
+  public async getMyStats(): Promise<UserStats> {
+    return this.request<UserStats>('/leaderboard/me/stats');
+  }
+
+  /**
+   * Consulta compatible con versiones anteriores del top personal.
    */
   public async getPersonalLeaderboard(): Promise<ScoreItem[]> {
     return this.request<ScoreItem[]>('/leaderboard/personal');
   }
 
   /**
-   * Consulta el ranking global de honor con las maximas puntuaciones registradas.
-   *
-   * @returns Lista global de mejores marcas navales.
+   * Consulta compatible con versiones anteriores del top global.
    */
   public async getGlobalLeaderboard(): Promise<ScoreItem[]> {
     return this.request<ScoreItem[]>('/leaderboard/global');

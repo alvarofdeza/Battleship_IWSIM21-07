@@ -27,11 +27,21 @@ public class UserEntity {
     @Column(name = "role", nullable = false, length = 20)
     private UserRole role;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    @Column(name = "verification_otp", length = 6)
+    private String verificationOtp;
+
+    @Column(name = "otp_expires_at")
+    private LocalDateTime otpExpiresAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     public UserEntity() {
         this.createdAt = LocalDateTime.now();
+        this.emailVerified = false;
     }
 
     public UserEntity(String username, String email, String password, UserRole role) {
@@ -39,6 +49,7 @@ public class UserEntity {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.emailVerified = true; // Usuarios pre-sembrados activos
         this.createdAt = LocalDateTime.now();
     }
 
@@ -76,6 +87,30 @@ public class UserEntity {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getVerificationOtp() {
+        return verificationOtp;
+    }
+
+    public void setVerificationOtp(String verificationOtp) {
+        this.verificationOtp = verificationOtp;
+    }
+
+    public LocalDateTime getOtpExpiresAt() {
+        return otpExpiresAt;
+    }
+
+    public void setOtpExpiresAt(LocalDateTime otpExpiresAt) {
+        this.otpExpiresAt = otpExpiresAt;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -371,31 +371,16 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
             </p>
           </div>
 
-          {/* Boton de Accion con Indicador de Autenticacion */}
-          {!isLoggedIn ? (
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => {
-                  sounds.playClick();
-                  onOpenAuth();
-                }}
-                className="w-full py-3 bg-[#ffaa00] hover:bg-[#e69900] text-black font-['Press_Start_2P'] text-[10px] tracking-wider bezel-tactical-btn font-bold flex items-center justify-center gap-2 uppercase transition-all shadow-[0_0_15px_rgba(255,170,0,0.35)]"
-              >
-                <Lock className="w-4 h-4" />
-                <span>SIGN IN TO COMMENCE COMBAT</span>
-              </button>
-              <p className="text-[10px] text-center font-mono text-[#8fa5bf]">
-                Clearance login required to synchronize battle data with the Admiralty server.
-              </p>
-            </div>
-          ) : (
+          {/* Boton de Accion con Soporte para Modo Invitado y Modo Autenticado */}
+          <div className="space-y-2">
             <button
               onClick={() => onStartGame(placedShips, difficulty)}
               disabled={!allPlaced || loading}
-              className={`w-full py-3.5 font-['Press_Start_2P'] text-[11px] tracking-widest bezel-tactical-btn font-bold flex items-center justify-center gap-2 uppercase transition-all ${
+              className={`w-full py-3.5 font-['Press_Start_2P'] text-[10px] sm:text-[11px] tracking-widest bezel-tactical-btn font-bold flex items-center justify-center gap-2 uppercase transition-all ${
                 allPlaced
-                  ? 'bg-[#00ff66] text-black hover:bg-[#00cc52] shadow-[0_0_20px_rgba(0,255,102,0.4)]'
+                  ? !isLoggedIn
+                    ? 'bg-[#ffaa00] text-black hover:bg-[#e69900] shadow-[0_0_20px_rgba(255,170,0,0.35)]'
+                    : 'bg-[#00ff66] text-black hover:bg-[#00cc52] shadow-[0_0_20px_rgba(0,255,102,0.4)]'
                   : 'bg-[#1b2d4f] text-[#536780] cursor-not-allowed border border-[#1a2d4f]'
               }`}
             >
@@ -404,13 +389,21 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
               ) : allPlaced ? (
                 <>
                   <Crosshair className="w-4 h-4" />
-                  <span>COMMENCE COMBAT</span>
+                  <span>
+                    {!isLoggedIn ? 'COMMENCE COMBAT (GUEST)' : 'COMMENCE COMBAT'}
+                  </span>
                 </>
               ) : (
                 `DEPLOY ALL SHIPS (${4 - placedShips.length} LEFT)`
               )}
             </button>
-          )}
+
+            {!isLoggedIn && (
+              <p className="text-[10px] text-center font-mono text-[#8fa5bf]">
+                Playing as Guest Commander. You can claim and record your citation in the Admiralty Roll after battle.
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Panel Derecho: Cuadricula 10x10 Interactiva (7 columnas) */}
