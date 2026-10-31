@@ -31,6 +31,11 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 5. **Preservacion Segura de Artefactos Legacy:**
    * Las carpetas y archivos heredados de la universidad (`modelado/` y `pruebas/`) no se eliminaran hasta que exista su version equivalente y superada en formato Markdown/Mermaid en la nueva documentacion.
 
+6. **Principios SOLID, Clean Code y Desacoplamiento de Proveedores (Vendor Lock-in Immunity):**
+   * El dominio debe permanecer agnostico a frameworks de infraestructura y a proveedores cloud concretos.
+   * Se debe cumplir estrictamente el principio de responsabilidad unica (SRP) e inversion de dependencias (DIP), asegurando que la base de datos se consuma como PostgreSQL estandar mediante interfaces JDBC / Spring Data JPA, sin acoplar la logica de negocio a SDKs o servicios propietarios de terceros.
+   * Toda decision arquitectonica debe priorizar la mantenibilidad a largo plazo, la alta cohesion, el bajo acoplamiento y la total portabilidad entre entornos de ejecucion.
+
 ---
 
 ## 2. Master Roadmap de Hitos

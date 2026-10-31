@@ -48,8 +48,9 @@ public class DatabaseConfig {
                     }
                 }
                 int port = uri.getPort() != -1 ? uri.getPort() : 5432;
-                String path = uri.getPath();
-                rawUrl = "jdbc:postgresql://" + uri.getHost() + ":" + port + path;
+                String path = uri.getPath() != null ? uri.getPath() : "/neondb";
+                String query = (uri.getQuery() != null && !uri.getQuery().isBlank()) ? "?" + uri.getQuery() : "?sslmode=require";
+                rawUrl = "jdbc:postgresql://" + uri.getHost() + ":" + port + path + query;
             } catch (Exception ignored) {
                 if (!rawUrl.startsWith("jdbc:")) {
                     rawUrl = "jdbc:" + rawUrl;

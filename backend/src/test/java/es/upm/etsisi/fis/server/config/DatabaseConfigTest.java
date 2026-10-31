@@ -28,7 +28,7 @@ class DatabaseConfigTest {
     @DisplayName("Debe sanitizar y normalizar URLs con esquema postgres:// y credenciales incrustadas")
     void shouldSanitizePostgresUrlWithEmbeddedCredentials() {
         MockEnvironment env = new MockEnvironment();
-        env.setProperty("DATABASE_URL", "postgres://clouduser:cloudpass@cloudhost:5432/clouddb");
+        env.setProperty("DATABASE_URL", "postgresql://neondb_owner:npg_secret@ep-test.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require");
 
         DataSource dataSource = databaseConfig.dataSource(env);
 

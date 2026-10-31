@@ -40,6 +40,9 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
   * Filtro de seguridad `JwtAuthenticationFilter` y endpoints protegidos con rol de usuario.
 * **Documentacion Interactiva OpenAPI 3 / Swagger UI:**
   * Especificacion viva disponible en tiempo real en `/swagger-ui.html` con soporte Bearer Token.
+* **Principios SOLID, Clean Code e Inmunidad al Vendor Lock-in:**
+  * Diseno desacoplado donde el motor de dominio y la capa de persistencia se comunican exclusivamente mediante abstracciones e interfaces estandar (JPA, JDBC, Spring Security).
+  * Ningun modulo depende de APIs propietarias de proveedores de hosting o de base de datos, garantizando portabilidad absoluta entre entornos locales (Docker Compose), bases de datos serverless (Neon) o nubes empresariales (AWS, Render, Railway).
 * **Suite Automatizada de 75 Tests (100% Cobertura de Integracion y Dominio):**
   * 56 tests en `core` y 19 tests de integracion y configuracion con MockMvc en `backend`.
 
