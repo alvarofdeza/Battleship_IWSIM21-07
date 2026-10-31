@@ -106,7 +106,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
               }`}
             >
               <Swords className="w-3.5 h-3.5" />
-              TOP 10 PARTIDAS
+              TOP 10 MATCHES
             </button>
             <button
               onClick={() => {
@@ -120,7 +120,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              TOP 10 OFICIALES (PUNTOS TOTALES)
+              TOP 10 OFFICERS (CAREER POINTS)
             </button>
           </div>
 
@@ -145,12 +145,12 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 <thead className="bg-[#0e1d35] text-[#8fa5bf] uppercase border-b border-[#1a2d4f] sticky top-0">
                   <tr>
                     <th className="py-2.5 px-3">#</th>
-                    <th className="py-2.5 px-3">Oficial</th>
-                    <th className="py-2.5 px-3 text-right">Puntos</th>
-                    <th className="py-2.5 px-3 text-center">Resultado</th>
-                    <th className="py-2.5 px-3 text-center">Dificultad</th>
-                    <th className="py-2.5 px-3 text-right">Tiros</th>
-                    <th className="py-2.5 px-3 text-right">Tiempo</th>
+                    <th className="py-2.5 px-3">Officer</th>
+                    <th className="py-2.5 px-3 text-right">Points</th>
+                    <th className="py-2.5 px-3 text-center">Result</th>
+                    <th className="py-2.5 px-3 text-center">Difficulty</th>
+                    <th className="py-2.5 px-3 text-right">Shots</th>
+                    <th className="py-2.5 px-3 text-right">Time</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#122340]">
@@ -185,7 +185,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                                   : 'bg-[#ff3344]/15 text-[#ff3344] border border-[#ff3344]/40'
                               }`}
                             >
-                              {isVictory ? 'VICTORIA' : 'DERROTA'}
+                              {isVictory ? 'VICTORY' : 'DEFEAT'}
                             </span>
                           </td>
                           <td className="py-2.5 px-3 text-center text-[#8fa5bf]">
@@ -215,11 +215,11 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 <thead className="bg-[#0e1d35] text-[#8fa5bf] uppercase border-b border-[#1a2d4f] sticky top-0">
                   <tr>
                     <th className="py-2.5 px-3">#</th>
-                    <th className="py-2.5 px-3">Oficial</th>
-                    <th className="py-2.5 px-3 text-right">Puntos Totales</th>
-                    <th className="py-2.5 px-3 text-center">Batallas</th>
-                    <th className="py-2.5 px-3 text-center">Victorias</th>
-                    <th className="py-2.5 px-3 text-right">Rango Naval</th>
+                    <th className="py-2.5 px-3">Officer</th>
+                    <th className="py-2.5 px-3 text-right">Total Points</th>
+                    <th className="py-2.5 px-3 text-center">Battles</th>
+                    <th className="py-2.5 px-3 text-center">Victories</th>
+                    <th className="py-2.5 px-3 text-right">Naval Rank</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#122340]">

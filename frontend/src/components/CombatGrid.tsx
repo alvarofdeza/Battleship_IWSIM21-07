@@ -148,20 +148,20 @@ export const CombatGrid: React.FC<CombatGridProps> = ({
                     }
                   } else {
                     // DEFENSIVE GRID (Player's own ships)
-                    if (cellChar === 'B' || cellChar === 'A' || cellChar === 'S' || cellChar === 'D') {
+                    if (cellChar === 'H') {
+                      cellBg = 'bg-[#401217] border-[#ff3344] shadow-[0_0_10px_rgba(255,51,68,0.6)]';
+                      cellContent = <Flame className="w-4 h-4 text-[#ff3344] animate-pulse" />;
+                    } else if (cellChar === 'S') {
+                      cellBg = 'bg-[#26070a] border-[#ff3344] shadow-[0_0_10px_rgba(255,51,68,0.4)]';
+                      cellContent = <Skull className="w-4 h-4 text-[#ff3344]" />;
+                    } else if (cellChar === 'M') {
+                      cellBg = 'bg-[#0b2438] border-[#00e5ff]/40';
+                      cellContent = <Droplets className="w-3.5 h-3.5 text-[#00e5ff]" />;
+                    } else if (cellChar === 'B' || cellChar === 'A' || cellChar === 'D') {
                       cellBg = 'bg-[#1b3b5c] border-[#4f8ba6] shadow-inner';
                       cellContent = (
                         <span className="font-mono text-xs font-bold text-[#e2ecf7]">{cellChar}</span>
                       );
-                    } else if (cellChar === 'M') {
-                      cellBg = 'bg-[#0b2438] border-[#00e5ff]/40';
-                      cellContent = <Droplets className="w-3.5 h-3.5 text-[#00e5ff]" />;
-                    } else if (cellChar === 'H') {
-                      cellBg = 'bg-[#401217] border-[#ff3344] shadow-[0_0_10px_rgba(255,51,68,0.6)]';
-                      cellContent = <Flame className="w-4 h-4 text-[#ff3344] animate-pulse" />;
-                    } else if (cellChar === 'S') {
-                      cellBg = 'bg-[#26070a] border-[#ff3344]';
-                      cellContent = <Skull className="w-4 h-4 text-[#ff3344]" />;
                     } else {
                       // Water / Empty unexplored
                       cellBg = 'bg-[#060e1c] border-[#162744]';

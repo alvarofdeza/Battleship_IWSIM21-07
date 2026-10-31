@@ -44,6 +44,7 @@ public class GameService {
         private String finalResult;
         private String winnerUsername;
         private boolean claimed;
+        private final List<MoveHistoryDto> inMemoryMoves = new java.util.concurrent.CopyOnWriteArrayList<>();
 
         public GameSessionMetadata(String gameId, String username, String difficulty, LocalDateTime createdAt, boolean guest) {
             this.gameId = gameId;
@@ -75,6 +76,11 @@ public class GameService {
         public void setWinnerUsername(String winnerUsername) { this.winnerUsername = winnerUsername; }
         public boolean isClaimed() { return claimed; }
         public void setClaimed(boolean claimed) { this.claimed = claimed; }
+        public List<MoveHistoryDto> getInMemoryMoves() { return inMemoryMoves; }
+        public void addMove(String playerUsername, int row, int col, String result) {
+            long moveId = inMemoryMoves.size() + 1L;
+            inMemoryMoves.add(new MoveHistoryDto(moveId, gameId, playerUsername, row, col, result, LocalDateTime.now()));
+        }
     }
 
     private final GameRecordRepository gameRecordRepository;
@@ -183,6 +189,9 @@ public class GameService {
         if (!isGuest) {
             moveRecordRepository.save(new MoveRecordEntity(gameId, effectiveUsername, row, col, playerResult));
         }
+        if (metadata != null) {
+            metadata.addMove(effectiveUsername, row, col, playerResult);
+        }
 
         ShotResponse response = new ShotResponse();
         response.setGameId(gameId);
@@ -209,6 +218,9 @@ public class GameService {
             String aiResult = domainGame.executeShot(aiCoords[0], aiCoords[1]);
             if (!isGuest) {
                 moveRecordRepository.save(new MoveRecordEntity(gameId, aiPlayer.getName(), aiCoords[0], aiCoords[1], aiResult));
+            }
+            if (metadata != null) {
+                metadata.addMove(aiPlayer.getName(), aiCoords[0], aiCoords[1], aiResult);
             }
 
             response.setAiCounterAttacked(true);
@@ -361,6 +373,12 @@ public class GameService {
         );
         leaderboardScoreRepository.save(scoreEntity);
 
+        // Persistir movimientos acumulados en memoria al reclamar la partida
+        for (MoveHistoryDto move : metadata.getInMemoryMoves()) {
+            String mover = "Guest".equalsIgnoreCase(move.getPlayerUsername()) ? authenticatedUsername : move.getPlayerUsername();
+            moveRecordRepository.save(new MoveRecordEntity(gameId, mover, move.getRow(), move.getCol(), move.getResult()));
+        }
+
         return new MatchScoreResponse(
                 scoreEntity.getId(),
                 authenticatedUsername,
@@ -384,6 +402,10 @@ public class GameService {
     }
 
     public List<MoveHistoryDto> getGameHistory(String gameId) {
+        GameSessionMetadata metadata = sessionMetadata.get(gameId);
+        if (metadata != null && !metadata.getInMemoryMoves().isEmpty()) {
+            return metadata.getInMemoryMoves();
+        }
         return moveRecordRepository.findByGameIdOrderByTimestampAsc(gameId).stream()
                 .map(m -> new MoveHistoryDto(m.getId(), m.getGameId(), m.getPlayerUsername(), m.getRow(), m.getCol(), m.getResult(), m.getTimestamp()))
                 .toList();

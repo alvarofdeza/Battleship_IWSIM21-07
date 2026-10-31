@@ -129,9 +129,9 @@ export default function Home() {
       setMobileTab('ATTACK');
 
       if (!user) {
-        toast.info(`MODO INVITADO &bull; ENFRENTANDO A IA [${difficulty}]`);
+        toast.info(`GUEST ENGAGEMENT &bull; ENGAGING ADVERSARY AI [${difficulty}]`);
       } else {
-        toast.success(`FLOTA DESPLEGADA &bull; ORDEN DE COMBATE EN TRANSMISION [AI-${difficulty}]`);
+        toast.success(`FLEET DEPLOYED &bull; COMBAT ORDERS TRANSMITTED [AI-${difficulty}]`);
       }
     } catch (err: unknown) {
       sounds.playShipSunkAlarm();
@@ -229,7 +229,7 @@ export default function Home() {
       await api.claimGame(game.gameId);
       setIsClaimed(true);
       sounds.playVictoryFanfare();
-      toast.success(`PUNTOS RECLAMADOS CON EXITO // REGISTRADOS EN TU EXPEDIENTE`);
+      toast.success(`POINTS CLAIMED SUCCESSFULLY // RECORDED IN YOUR SERVICE RECORD`);
       fetchUserStats();
     } catch (err: unknown) {
       sounds.playShipSunkAlarm();
@@ -253,7 +253,7 @@ export default function Home() {
         await api.claimGame(game.gameId);
         setIsClaimed(true);
         sounds.playVictoryFanfare();
-        toast.success(`PUNTOS RECLAMADOS CON EXITO // VINCULADOS A ${profile.username.toUpperCase()}`);
+        toast.success(`POINTS CLAIMED SUCCESSFULLY // LINKED TO ${profile.username.toUpperCase()}`);
       } catch {
         // Ignorar si ya fue reclamada
       }
@@ -469,7 +469,7 @@ export default function Home() {
               {/* Multi-Dimensional Score Breakdown Card */}
               <div className="border border-[#1a2d4f] bg-[#050b14] p-4 font-mono text-xs text-left space-y-2">
                 <div className="flex justify-between items-center pb-2 border-b border-[#1a2d4f]">
-                  <span className="text-[#8fa5bf]">PUNTUACION OBTENIDA:</span>
+                  <span className="text-[#8fa5bf]">BATTLE SCORE EARNED:</span>
                   <span className="text-base font-bold text-[#ffaa00]">
                     {finalPoints !== null ? finalPoints.toLocaleString() : 0} PTS
                   </span>
@@ -477,15 +477,15 @@ export default function Home() {
 
                 <div className="grid grid-cols-3 gap-2 pt-1 text-center">
                   <div>
-                    <div className="text-[10px] text-[#536780]">DISPAROS</div>
+                    <div className="text-[10px] text-[#536780]">SHOTS FIRED</div>
                     <div className="font-bold text-white mt-0.5">{finalMoves || logs.length}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#536780]">DIFICULTAD</div>
+                    <div className="text-[10px] text-[#536780]">DIFFICULTY</div>
                     <div className="font-bold text-[#ffaa00] mt-0.5">{aiDifficulty}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#536780]">DURACION</div>
+                    <div className="text-[10px] text-[#536780]">DURATION</div>
                     <div className="font-bold text-[#38bdf8] mt-0.5">
                       {finalDuration ? formatDuration(finalDuration) : '-'}
                     </div>
@@ -497,17 +497,17 @@ export default function Home() {
               {!user && !isClaimed && (
                 <div className="p-3 border-2 border-[#ffaa00] bg-[#ffaa00]/10 text-center space-y-2 bezel-tactical">
                   <div className="text-[#ffaa00] font-['Press_Start_2P'] text-[10px]">
-                    MODO INVITADO &bull; {finalPoints?.toLocaleString()} PTS
+                    GUEST ENGAGEMENT &bull; {finalPoints?.toLocaleString()} PTS
                   </div>
                   <p className="text-xs text-[#8fa5bf] font-mono leading-relaxed">
-                    ¿Deseas registrarte para guardar tu puntuacion en el Escalafon Militar y desbloquear tu rango naval?
+                    Register now to log your combat score in the Admiralty Roll and unlock your naval officer rank.
                   </p>
                   <button
                     onClick={() => setIsAuthOpen(true)}
                     className="w-full py-2.5 bg-[#ffaa00] hover:bg-[#e69900] text-black font-mono font-bold text-xs uppercase bezel-tactical-btn flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(255,170,0,0.35)]"
                   >
                     <Award className="w-4 h-4" />
-                    RECLAMAR PUNTOS E INSCRIBIRSE
+                    CLAIM POINTS & ENLIST
                   </button>
                 </div>
               )}
@@ -516,7 +516,7 @@ export default function Home() {
               {user && !isClaimed && game.player1 === 'Guest' && (
                 <div className="p-3 border-2 border-[#00ff66] bg-[#00ff66]/10 text-center space-y-2">
                   <p className="text-xs text-[#8fa5bf] font-mono">
-                    Sesion activa como <strong className="text-white">{user.username}</strong>. Vincula estos {finalPoints} PTS a tu expediente militar.
+                    Active session as <strong className="text-white">{user.username}</strong>. Link these {finalPoints} PTS to your service record.
                   </p>
                   <button
                     onClick={handleClaimPoints}
@@ -524,7 +524,7 @@ export default function Home() {
                     className="w-full py-2 bg-[#00ff66] hover:bg-[#00cc52] text-black font-mono font-bold text-xs uppercase bezel-tactical-btn flex items-center justify-center gap-1.5"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    {isClaiming ? 'VINCULANDO...' : 'VINCULAR PUNTOS A MI EXPEDIENTE'}
+                    {isClaiming ? 'LINKING...' : 'LINK POINTS TO SERVICE RECORD'}
                   </button>
                 </div>
               )}
@@ -533,7 +533,7 @@ export default function Home() {
               {isClaimed && (
                 <div className="p-2 border border-[#00ff66] bg-[#00ff66]/10 text-[#00ff66] font-mono text-xs flex items-center justify-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>PUNTUACION REGISTRADA EN EL ESCALAFON DE LA ARMADA</span>
+                  <span>SCORE RECORDED IN THE ADMIRALTY ROLL</span>
                 </div>
               )}
 

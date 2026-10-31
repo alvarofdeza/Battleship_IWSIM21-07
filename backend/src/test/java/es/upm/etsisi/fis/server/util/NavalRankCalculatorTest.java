@@ -11,42 +11,42 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class NavalRankCalculatorTest {
 
     @Test
-    @DisplayName("Puntos menores o iguales a 2500 asignan rango de Cadete Naval")
+    @DisplayName("Puntos menores o iguales a 2500 asignan rango de Naval Cadet")
     void testCadeteNaval() {
-        assertEquals("Cadete Naval", NavalRankCalculator.calculateRank(0));
-        assertEquals("Cadete Naval", NavalRankCalculator.calculateRank(1000));
-        assertEquals("Cadete Naval", NavalRankCalculator.calculateRank(2500));
-        assertEquals("Cadete Naval", NavalRankCalculator.calculateRank(-50));
+        assertEquals("Naval Cadet", NavalRankCalculator.calculateRank(0));
+        assertEquals("Naval Cadet", NavalRankCalculator.calculateRank(1000));
+        assertEquals("Naval Cadet", NavalRankCalculator.calculateRank(2500));
+        assertEquals("Naval Cadet", NavalRankCalculator.calculateRank(-50));
     }
 
     @Test
-    @DisplayName("Puntos entre 2501 y 7500 asignan rango de Alferez de Fragata")
+    @DisplayName("Puntos entre 2501 y 7500 asignan rango de Ensign")
     void testAlferezDeFragata() {
-        assertEquals("Alferez de Fragata", NavalRankCalculator.calculateRank(2501));
-        assertEquals("Alferez de Fragata", NavalRankCalculator.calculateRank(5000));
-        assertEquals("Alferez de Fragata", NavalRankCalculator.calculateRank(7500));
+        assertEquals("Ensign", NavalRankCalculator.calculateRank(2501));
+        assertEquals("Ensign", NavalRankCalculator.calculateRank(5000));
+        assertEquals("Ensign", NavalRankCalculator.calculateRank(7500));
     }
 
     @Test
-    @DisplayName("Puntos entre 7501 y 15000 asignan rango de Teniente de Navio")
+    @DisplayName("Puntos entre 7501 y 15000 asignan rango de Lieutenant")
     void testTenienteDeNavio() {
-        assertEquals("Teniente de Navio", NavalRankCalculator.calculateRank(7501));
-        assertEquals("Teniente de Navio", NavalRankCalculator.calculateRank(10000));
-        assertEquals("Teniente de Navio", NavalRankCalculator.calculateRank(15000));
+        assertEquals("Lieutenant", NavalRankCalculator.calculateRank(7501));
+        assertEquals("Lieutenant", NavalRankCalculator.calculateRank(10000));
+        assertEquals("Lieutenant", NavalRankCalculator.calculateRank(15000));
     }
 
     @Test
-    @DisplayName("Puntos entre 15001 y 30000 asignan rango de Capitan de Navio")
+    @DisplayName("Puntos entre 15001 y 30000 asignan rango de Captain")
     void testCapitanDeNavio() {
-        assertEquals("Capitan de Navio", NavalRankCalculator.calculateRank(15001));
-        assertEquals("Capitan de Navio", NavalRankCalculator.calculateRank(25000));
-        assertEquals("Capitan de Navio", NavalRankCalculator.calculateRank(30000));
+        assertEquals("Captain", NavalRankCalculator.calculateRank(15001));
+        assertEquals("Captain", NavalRankCalculator.calculateRank(25000));
+        assertEquals("Captain", NavalRankCalculator.calculateRank(30000));
     }
 
     @Test
-    @DisplayName("Puntos superiores a 30000 asignan rango de Almirante de la Flota")
+    @DisplayName("Puntos superiores a 30000 asignan rango de Fleet Admiral")
     void testAlmiranteDeLaFlota() {
-        assertEquals("Almirante de la Flota", NavalRankCalculator.calculateRank(30001));
-        assertEquals("Almirante de la Flota", NavalRankCalculator.calculateRank(100000));
+        assertEquals("Fleet Admiral", NavalRankCalculator.calculateRank(30001));
+        assertEquals("Fleet Admiral", NavalRankCalculator.calculateRank(100000));
     }
 }

@@ -141,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onOpenProfile?.();
                 }}
                 className="flex items-center gap-1.5 text-left hover:opacity-80 transition-opacity"
-                title="Abrir Expediente de Oficial"
+                title="Open Officer Dossier"
               >
                 <User className="w-3.5 h-3.5 text-[#00ff66]" />
                 <span className="text-[11px] text-[#00ff66] font-mono uppercase font-bold tracking-wider">

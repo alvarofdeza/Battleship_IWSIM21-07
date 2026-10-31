@@ -137,18 +137,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 </h2>
                 <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/40 rounded flex items-center gap-1">
                   <CheckCircle2 className="w-2.5 h-2.5" />
-                  VERIFICADO
+                  VERIFIED
                 </span>
               </div>
               <div className="text-xs text-[#38bdf8] font-mono font-bold mt-1 flex items-center gap-1">
-                <span>RANGO:</span>
-                <span>{stats?.navalRank || 'Cadete Naval'}</span>
+                <span>RANK:</span>
+                <span>{stats?.navalRank || 'Naval Cadet'}</span>
               </div>
             </div>
           </div>
 
           <div className="text-right font-mono text-xs text-[#8fa5bf]">
-            <div>EXPEDIENTE MILITAR #NAV-{user.id || '01'}</div>
+            <div>SERVICE DOSSIER #NAV-{user.id || '01'}</div>
             <div className="text-[11px] text-[#536780]">{user.email}</div>
           </div>
         </div>
@@ -156,28 +156,28 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         {/* Career Summary Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="border border-[#1a2d4f] bg-[#050b14] p-3 text-center">
-            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Puntos de Carrera</div>
+            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Career Points</div>
             <div className="text-lg font-bold font-mono text-[#ffaa00] mt-1">
               {(stats?.totalPoints || 0).toLocaleString()}
             </div>
           </div>
 
           <div className="border border-[#1a2d4f] bg-[#050b14] p-3 text-center">
-            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Combates</div>
+            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Engagements</div>
             <div className="text-lg font-bold font-mono text-white mt-1">
               {stats?.totalGames || 0}
             </div>
           </div>
 
           <div className="border border-[#1a2d4f] bg-[#050b14] p-3 text-center">
-            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Victorias</div>
+            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Victories</div>
             <div className="text-lg font-bold font-mono text-[#00ff66] mt-1">
               {stats?.totalWins || 0}
             </div>
           </div>
 
           <div className="border border-[#1a2d4f] bg-[#050b14] p-3 text-center">
-            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Efectividad</div>
+            <div className="text-[10px] font-mono text-[#8fa5bf] uppercase">Win Rate</div>
             <div className="text-lg font-bold font-mono text-[#38bdf8] mt-1">
               {stats?.winRate || 0}%
             </div>
@@ -198,7 +198,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
             }`}
           >
             <Trophy className="w-3.5 h-3.5" />
-            MEJORES 10 PARTIDAS
+            TOP 10 MATCHES
           </button>
 
           <button
@@ -213,7 +213,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
             }`}
           >
             <History className="w-3.5 h-3.5" />
-            ULTIMAS 10 PARTIDAS
+            RECENT 10 MATCHES
           </button>
 
           <button
@@ -228,7 +228,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
             }`}
           >
             <KeyRound className="w-3.5 h-3.5" />
-            SEGURIDAD
+            SECURITY
           </button>
         </div>
 
@@ -240,11 +240,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 <thead className="bg-[#0e1d35] text-[#8fa5bf] uppercase border-b border-[#1a2d4f] sticky top-0">
                   <tr>
                     <th className="py-2 px-3">#</th>
-                    <th className="py-2 px-3 text-right">Puntos</th>
-                    <th className="py-2 px-3 text-center">Resultado</th>
-                    <th className="py-2 px-3 text-center">Dificultad</th>
-                    <th className="py-2 px-3 text-right">Disparos</th>
-                    <th className="py-2 px-3 text-right">Duracion</th>
+                    <th className="py-2 px-3 text-right">Points</th>
+                    <th className="py-2 px-3 text-center">Result</th>
+                    <th className="py-2 px-3 text-center">Difficulty</th>
+                    <th className="py-2 px-3 text-right">Shots</th>
+                    <th className="py-2 px-3 text-right">Duration</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#122340]">
@@ -271,7 +271,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                                   : 'bg-[#ff3344]/15 text-[#ff3344] border border-[#ff3344]/30'
                               }`}
                             >
-                              {isVic ? 'VICTORIA' : 'DERROTA'}
+                              {isVic ? 'VICTORY' : 'DEFEAT'}
                             </span>
                           </td>
                           <td className="py-2 px-3 text-center text-[#8fa5bf]">{m.difficulty}</td>
@@ -296,12 +296,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
               <table className="w-full text-left font-mono text-xs">
                 <thead className="bg-[#0e1d35] text-[#8fa5bf] uppercase border-b border-[#1a2d4f] sticky top-0">
                   <tr>
-                    <th className="py-2 px-3">Partida</th>
-                    <th className="py-2 px-3 text-right">Puntos</th>
-                    <th className="py-2 px-3 text-center">Resultado</th>
-                    <th className="py-2 px-3 text-center">Dificultad</th>
-                    <th className="py-2 px-3 text-right">Disparos</th>
-                    <th className="py-2 px-3 text-right">Duracion</th>
+                    <th className="py-2 px-3">Match</th>
+                    <th className="py-2 px-3 text-right">Points</th>
+                    <th className="py-2 px-3 text-center">Result</th>
+                    <th className="py-2 px-3 text-center">Difficulty</th>
+                    <th className="py-2 px-3 text-right">Shots</th>
+                    <th className="py-2 px-3 text-right">Duration</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#122340]">
@@ -328,7 +328,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                                   : 'bg-[#ff3344]/15 text-[#ff3344] border border-[#ff3344]/30'
                               }`}
                             >
-                              {isVic ? 'VICTORIA' : 'DERROTA'}
+                              {isVic ? 'VICTORY' : 'DEFEAT'}
                             </span>
                           </td>
                           <td className="py-2 px-3 text-center text-[#8fa5bf]">{m.difficulty}</td>
@@ -351,7 +351,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
           <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md mx-auto py-2">
             <div>
               <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
-                Codigo de Acceso Actual
+                Current Access Code
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
@@ -368,7 +368,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
             <div>
               <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
-                Nuevo Codigo de Acceso
+                New Access Code
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
@@ -377,7 +377,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimo 6 caracteres..."
+                  placeholder="Minimum 6 characters..."
                   className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
                 />
               </div>
@@ -385,7 +385,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
             <div>
               <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
-                Confirmar Nuevo Codigo
+                Confirm New Access Code
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
@@ -394,7 +394,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repetir contrasena..."
+                  placeholder="Confirm new password..."
                   className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
                 />
               </div>
@@ -405,7 +405,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
               disabled={passwordLoading}
               className="w-full mt-2 py-2.5 px-4 bg-[#38bdf8] text-black font-mono font-bold text-xs tracking-widest hover:bg-[#0ea5e9] transition-colors disabled:opacity-50 bezel-tactical-btn uppercase flex items-center justify-center gap-2"
             >
-              {passwordLoading ? 'UPDATING CREDENTIALS...' : 'ACTUALIZAR CONTRASENA'}
+              {passwordLoading ? 'UPDATING CREDENTIALS...' : 'UPDATE ACCESS CREDENTIALS'}
             </button>
           </form>
         )}

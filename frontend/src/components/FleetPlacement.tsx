@@ -316,7 +316,7 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
                         )}
                       </div>
                       <div className="text-[10px] font-mono text-[#8fa5bf] mt-0.5">
-                        Length: {ship.size} celdas &bull; Code: {ship.letter}
+                        Length: {ship.size} cells &bull; Code: {ship.letter}
                       </div>
                     </div>
 

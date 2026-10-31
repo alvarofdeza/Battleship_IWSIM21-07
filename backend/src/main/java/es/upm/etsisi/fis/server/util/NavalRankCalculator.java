@@ -14,17 +14,17 @@ public final class NavalRankCalculator {
      */
     public static String calculateRank(long totalPoints) {
         if (totalPoints > 30000) {
-            return "Almirante de la Flota";
+            return "Fleet Admiral";
         }
         if (totalPoints > 15000) {
-            return "Capitan de Navio";
+            return "Captain";
         }
         if (totalPoints > 7500) {
-            return "Teniente de Navio";
+            return "Lieutenant";
         }
         if (totalPoints > 2500) {
-            return "Alferez de Fragata";
+            return "Ensign";
         }
-        return "Cadete Naval";
+        return "Naval Cadet";
     }
 }

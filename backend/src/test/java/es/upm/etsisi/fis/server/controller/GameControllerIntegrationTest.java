@@ -195,6 +195,12 @@ class GameControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(shotReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gameId").value(gameId));
+
+        // 3. Consultar historial de disparos del invitado (debe devolver los 2 movimientos en memoria)
+        mockMvc.perform(get("/api/v1/games/" + gameId + "/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].playerUsername").value("Guest"));
     }
 
     @Test

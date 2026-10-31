@@ -131,6 +131,6 @@ class LeaderboardControllerIntegrationTest {
                 .andExpect(jsonPath("$.totalWins").value(1))
                 .andExpect(jsonPath("$.totalLosses").value(1))
                 .andExpect(jsonPath("$.winRate").value(50.0))
-                .andExpect(jsonPath("$.navalRank").value("Cadete Naval"));
+                .andExpect(jsonPath("$.navalRank").value("Naval Cadet"));
     }
 }
