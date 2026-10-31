@@ -73,6 +73,11 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
 * Java Development Kit (JDK) 17 o superior.
 * Node.js 18 o superior y npm.
 
+### Arranque Rapido en 1 Clic (Desarrollo Local en Windows)
+Para iniciar automaticamente el backend Spring Boot y el frontend Next.js en ventanas independientes:
+* **Hacer doble clic en:** `run-dev.bat`
+* **O ejecutar en PowerShell:** `.\run-dev.ps1`
+
 ### Ejecucion de la Suite Completa de Tests
 Para compilar y verificar los 75 tests unitarios y de integracion:
 
