@@ -12,7 +12,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Username cannot be empty")
     @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Username must be alphanumeric")
+    @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Username can only contain letters, numbers, underscores, and hyphens")
     private String username;
 
     @NotBlank(message = "Email cannot be empty")

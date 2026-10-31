@@ -6,6 +6,7 @@ import es.upm.etsisi.fis.server.entity.UserRole;
 import es.upm.etsisi.fis.server.exception.ResourceNotFoundException;
 import es.upm.etsisi.fis.server.repository.UserRepository;
 import es.upm.etsisi.fis.server.security.JwtService;
+import es.upm.etsisi.fis.server.util.UsernamePolicyValidator;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -76,6 +77,9 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         String cleanUsername = request.getUsername().trim();
         String cleanEmail = request.getEmail().trim().toLowerCase();
+
+        // Validar politica de nombres de usuario reservados y prohibidos
+        UsernamePolicyValidator.validate(cleanUsername);
 
         if (userRepository.existsByUsername(cleanUsername)) {
             throw new IllegalArgumentException("Username '" + cleanUsername + "' is already taken.");

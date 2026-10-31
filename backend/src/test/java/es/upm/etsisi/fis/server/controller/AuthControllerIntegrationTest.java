@@ -52,13 +52,13 @@ class AuthControllerIntegrationTest {
     @Test
     @DisplayName("Rechazar registro con nombre de usuario duplicado aunque el correo sea nuevo")
     void testRegisterDuplicateUsernameFails() throws Exception {
-        RegisterRequest request = new RegisterRequest("admin", "new_email_99@battleship.com", "password123");
+        RegisterRequest request = new RegisterRequest("alvaro", "new_email_99@battleship.com", "password123");
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Username 'admin' is already taken."));
+                .andExpect(jsonPath("$.message").value("Username 'alvaro' is already taken."));
     }
 
     @Test
@@ -389,5 +389,53 @@ class AuthControllerIntegrationTest {
         // Comprobar que en base de datos el OTP fue revocado
         UserEntity user = userRepository.findByUsername("cadetlockout").orElseThrow();
         org.junit.jupiter.api.Assertions.assertNull(user.getVerificationOtp());
+    }
+
+    @Test
+    @DisplayName("Registro exitoso con nombre de usuario conteniendo guiones bajos y guiones medios")
+    void testRegisterWithUnderscoreAndHyphenSuccess() throws Exception {
+        RegisterRequest request = new RegisterRequest("alpha_bravo-01", "alphabravo@battleship.com", "securePass123");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("alpha_bravo-01"));
+    }
+
+    @Test
+    @DisplayName("Rechazar registro con nombre de usuario reservado del sistema")
+    void testRegisterReservedUsernameFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("moderator", "mod@battleship.com", "securePass123");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Username 'moderator' is reserved and cannot be used."));
+    }
+
+    @Test
+    @DisplayName("Rechazar registro con terminologia ofensiva en ingles")
+    void testRegisterForbiddenProfanityEnglishFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("bad_asshole_99", "offense_en@battleship.com", "securePass123");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Username contains inappropriate or prohibited terminology."));
+    }
+
+    @Test
+    @DisplayName("Rechazar registro con terminologia ofensiva en espanol")
+    void testRegisterForbiddenProfanitySpanishFails() throws Exception {
+        RegisterRequest request = new RegisterRequest("un_cabron_naval", "offense_es@battleship.com", "securePass123");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Username contains inappropriate or prohibited terminology."));
     }
 }
