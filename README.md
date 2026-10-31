@@ -1,16 +1,18 @@
 # Battleship Platform - Core Engine, Enterprise Backend & Web Terminal
 
+![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-17%2F22-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)
-![Maven](https://img.shields.io/badge/Maven-3.9-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
 ![JUnit5](https://img.shields.io/badge/JUnit5-5.10.2-25A162?style=for-the-badge&logo=junit5&logoColor=white)
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-72%20Passed-success?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-75%20Passed-success?style=for-the-badge)
 
 Implementacion full-stack modular del clasico juego de combate naval Hundir la Flota (Battleship). Inicialmente desarrollado en el ambito academico para la asignatura Fundamentos de Ingenieria del Software en la Universidad Politecnica de Madrid (UPM - ETSISI), este proyecto ha sido transformado en una plataforma profesional desacoplada con **Clean Architecture**, **Spring Boot 3**, **Spring Security con JWT**, **persistencia relacional Spring Data JPA**, **algoritmos avanzados de Inteligencia Artificial** e **interfaz tactica web militar en Next.js**.
 
@@ -38,15 +40,15 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
   * Filtro de seguridad `JwtAuthenticationFilter` y endpoints protegidos con rol de usuario.
 * **Documentacion Interactiva OpenAPI 3 / Swagger UI:**
   * Especificacion viva disponible en tiempo real en `/swagger-ui.html` con soporte Bearer Token.
-* **Suite Automatizada de 72 Tests (100% Cobertura de Integracion y Dominio):**
-  * 56 tests en `core` y 16 tests de integracion con MockMvc en `backend`.
+* **Suite Automatizada de 75 Tests (100% Cobertura de Integracion y Dominio):**
+  * 56 tests en `core` y 19 tests de integracion y configuracion con MockMvc en `backend`.
 
 ---
 
 ## 2. Documentacion Tecnica y Modelado
 
-* [modelado/ARQUITECTURA_Y_DISENO.md](modelado/ARQUITECTURA_Y_DISENO.md): Diagramas de componentes, arquitectura enterprise Spring Boot 3, arquitectura web frontend, diagrama de clases, diagrama entidad-relacion (ERD) y catalogo de endpoints REST.
-* [pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md](pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md): Matriz de trazabilidad y reporte de los 72 tests automatizados (JUnit 5, Mockito, Spring Security Test, MockMvc) y verificacion de compilacion frontend.
+* [modelado/ARQUITECTURA_Y_DISENO.md](modelado/ARQUITECTURA_Y_DISENO.md): Diagramas de componentes, arquitectura enterprise Spring Boot 3, arquitectura web frontend, diagrama de clases, diagrama entidad-relacion (ERD), catalogo de endpoints REST y topologia DevOps.
+* [pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md](pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md): Matriz de trazabilidad y reporte de los 75 tests automatizados (JUnit 5, Mockito, Spring Security Test, MockMvc) y verificacion de compilacion frontend.
 * [AGENTS.md](AGENTS.md): Hoja de ruta (Roadmap), Definition of Done (DoD) y registro de hitos del proyecto.
 * `legacy/`: Archivo historico de artefactos academicos de la universidad (diagramas originales, pruebas iniciales y PDFs) preservados conforme a las normas de ingenieria.
 
@@ -72,7 +74,7 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
 * Node.js 18 o superior y npm.
 
 ### Ejecucion de la Suite Completa de Tests
-Para compilar y verificar los 72 tests unitarios y de integracion:
+Para compilar y verificar los 75 tests unitarios y de integracion:
 
 ```bash
 # En Windows:
@@ -126,7 +128,60 @@ Accede desde tu navegador a:
 
 ---
 
-## 5. Credenciales de Prueba Preconfiguradas
+## 5. Despliegue y Ejecucion con Docker & Docker Compose
+
+La plataforma incluye configuracion multi-contenedor para levantar localmente la base de datos relacional PostgreSQL 16, el backend Spring Boot 3 y la interfaz web Next.js con un unico comando:
+
+```bash
+# 1. Crear el archivo de variables de entorno a partir de la plantilla
+cp .env.example .env
+
+# 2. Compilar imagenes y levantar los contenedores
+docker compose up --build
+```
+
+### Servicios Levantados en el Cluster
+* **Frontend Web:** [http://localhost:3000](http://localhost:3000) (Next.js 16 Standalone Container)
+* **Backend REST API:** [http://localhost:8080](http://localhost:8080) (Spring Boot 3 JRE 17 Container)
+* **Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+* **Base de Datos PostgreSQL:** `localhost:5432` (Base de datos: `battleship_db`, Usuario: `postgres`)
+
+Para detener y limpiar los contenedores:
+```bash
+docker compose down
+```
+
+---
+
+## 6. Despliegue Cloud en Vivo (Render & Vercel)
+
+La infraestructura esta disenada para publicarse gratuitamente en internet para demostracion publica:
+
+### 6.1 Backend y Base de Datos (Render)
+1. Conecta el repositorio en [Render](https://render.com).
+2. Render detectara automaticamente el archivo `render.yaml` creando:
+   * **Servicio Web Docker:** Ejecutando `backend/Dockerfile` en el contexto raiz.
+   * **PostgreSQL Gestionado:** Base de datos persistente en la nube vinculada automaticamente por variables de entorno.
+3. El backend expone la API REST publica con URL tipo `https://battleship-backend.onrender.com`.
+
+### 6.2 Frontend Web (Vercel)
+1. Importa el repositorio en [Vercel](https://vercel.com).
+2. Establece el **Root Directory** en `frontend`.
+3. Anade la siguiente variable de entorno:
+   * `NEXT_PUBLIC_API_URL`: `https://battleship-backend.onrender.com/api/v1`
+4. Pulsa **Deploy**. Vercel compila y distribuye la aplicacion a traves de su red CDN global.
+
+---
+
+## 7. Pipeline de Integracion Continua (GitHub Actions)
+
+El archivo `.github/workflows/ci.yml` ejecuta una suite automatizada de verificacion de calidad en cada `push` o `pull request` dirigido a la rama `main`:
+* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 75 tests unitarios y de integracion (`BUILD SUCCESS`).
+* **Job Frontend:** Descarga Node 20, verifica tipos estricto con TypeScript (`tsc --noEmit`) y compila la aplicacion Next.js con Turbopack.
+
+---
+
+## 8. Credenciales de Prueba Preconfiguradas
 
 Al iniciar la aplicacion, se generan automaticamente los siguientes usuarios semilla:
 

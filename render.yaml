@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: battleship-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: battleship-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: battleship-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: battleship-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: battleship-db
+    plan: free
+    region: frankfurt
+    databaseName: battleship_db
+    user: postgres

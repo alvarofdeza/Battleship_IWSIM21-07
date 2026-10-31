@@ -389,3 +389,45 @@ flowchart TD
     ApiClient --> STORAGE
     ApiClient -->|Peticiones HTTP JSON| SPRING_API
 ```
+
+---
+
+## 9. Topologia y Arquitectura de Despliegue DevOps (Docker & Cloud)
+
+La plataforma esta preparada tanto para orquestacion multi-contenedor local mediante Docker Compose como para despliegue distribuido de alto rendimiento en la nube (Vercel + Render + PostgreSQL).
+
+```mermaid
+flowchart TD
+    subgraph ClientBrowser ["Cliente / Oficial Naval"]
+        USER["Navegador Web (HTTPS)"]
+    end
+
+    subgraph VercelEdge ["Vercel Edge Network (Frontend)"]
+        VERCEL_CDN["Next.js 16 Standalone Server / CDN"]
+        REACT_APP["React 19 SPA (CIC Theme)"]
+    end
+
+    subgraph RenderCloud ["Render Cloud / Docker Container (Backend)"]
+        DOCKER_APP["Docker Container: Eclipse Temurin JRE 17 Alpine"]
+        SPRING_APP["Spring Boot 3 REST API (:8080 / :10000)"]
+    end
+
+    subgraph ManagedDB ["Base de Datos Gestionada"]
+        PG_CLOUD[("PostgreSQL 16 Database")]
+    end
+
+    subgraph GitHubActions ["Integracion Continua (CI/CD)"]
+        GH_RUNNER["GitHub Actions Runner (Ubuntu)"]
+        TEST_JOB["Maven multi-module (72 tests)"]
+        LINT_JOB["Next.js build & TypeScript verify"]
+    end
+
+    USER -->|Acceso Web| VERCEL_CDN
+    VERCEL_CDN --> REACT_APP
+    REACT_APP -->|Bearer JWT HTTP Requests| DOCKER_APP
+    DOCKER_APP --> SPRING_APP
+    SPRING_APP -->|JDBC Connection Pool HikariCP| PG_CLOUD
+
+    GH_RUNNER --> TEST_JOB
+    GH_RUNNER --> LINT_JOB
+```

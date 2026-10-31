@@ -100,9 +100,9 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
   - [x] Integracion de `springdoc-openapi-starter-webmvc-ui` 2.5.0.
   - [x] Configuracion de esquema de seguridad Bearer JWT en Swagger (`OpenApiConfig`).
   - [x] Swagger UI disponible en `/swagger-ui.html` y esquema JSON en `/v3/api-docs`.
-- [x] **Suite de Pruebas de Integracion MockMvc:**
-  - [x] 16 tests automatizados en `battleship-backend` cubriendo flujos de autenticacion, reglas de combate, niebla de guerra, disparos duplicados, limites y clasificaciones.
-  - [x] Total de 72 tests automatizados pasando al 100% en todo el repositorio.
+- [x] **Suite de Pruebas de Integracion MockMvc y Configuracion:**
+  - [x] 19 tests automatizados en `battleship-backend` cubriendo flujos de autenticacion, reglas de combate, niebla de guerra, disparos duplicados, limites, clasificaciones y resiliencia de conexion cloud.
+  - [x] Total de 75 tests automatizados pasando al 100% en todo el repositorio.
 
 ---
 
@@ -124,14 +124,16 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 ---
 
-### [PENDIENTE] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
+### [COMPLETADO] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
 *Objetivo:* Publicar la plataforma completa en internet con Live Demo publica de maximo impacto para portfolio.
-- [ ] Dockerfile multi-stage optimizado para empaquetar el backend Spring Boot.
-- [ ] Archivo `docker-compose.yml` para levantar localmente el backend, frontend y base de datos relacional PostgreSQL.
-- [ ] Despliegue del backend y base de datos PostgreSQL persistente en Render / Railway.
-- [ ] Despliegue del frontend Next.js en Vercel con conexion directa a la URL publica del backend en produccion.
-- [ ] Pipeline de integracion continua (CI/CD) con GitHub Actions (compilacion Maven, ejecucion automatizada de los 72 tests y verificacion de calidad).
-- [ ] README.md final de nivel profesional con arquitectura C4/Mermaid, insignias tecnicas (badges) y enlace directo a la Live Demo.
+- [x] Dockerfile multi-stage optimizado para empaquetar el backend Spring Boot con Eclipse Temurin JDK/JRE 17 Alpine y usuario no privilegiado (`backend/Dockerfile`).
+- [x] Dockerfile multi-stage para el frontend Next.js 16 con empaquetado standalone ultra-ligero y usuario no privilegiado (`frontend/Dockerfile`).
+- [x] Archivo `docker-compose.yml` multi-servicio (Compose Spec v2) para levantar localmente el frontend, backend y PostgreSQL 16 con healthcheck y volumen persistente.
+- [x] Plantilla `.env.example` y archivos `.dockerignore` exhaustivos para aislamiento de entornos de desarrollo y produccion.
+- [x] Configuracion de resiliencia de conexion cloud en `DatabaseConfig.java` compatible con PostgreSQL en Render, Railway, Neon y Docker.
+- [x] Archivo de infraestructura como codigo `render.yaml` para despliegue automatizado con base de datos gestionada en Render.
+- [x] Pipeline de integracion continua (CI/CD) con GitHub Actions (`.github/workflows/ci.yml`) que valida los 75 tests de Maven y compila el frontend en cada commit a `main`.
+- [x] README.md profesional con arquitectura de despliegue en Mermaid, insignias tecnicas (CI, Docker, Next.js, Spring Boot) y guia de ejecucion.
 
 ---
 

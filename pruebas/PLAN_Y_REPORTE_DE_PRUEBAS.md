@@ -8,11 +8,11 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **72** (56 core + 16 backend) |
+| **Total de Tests Automatizados** | **75** (56 core + 19 backend) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
-| **Tiempo de Ejecucion Total** | **~9.2 segundos** |
+| **Tiempo de Ejecucion Total** | **~9.4 segundos** |
 | **Frameworks de Testing** | JUnit 5 (Jupiter 5.10.2), Spring Boot Starter Test, Spring Security Test, MockMvc, Mockito 5.11, AssertJ 3.25 |
 | **Herramienta de Compilacion** | Apache Maven Wrapper (`./mvnw` / `mvnw.cmd`) |
 
@@ -59,6 +59,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | `GameControllerIntegrationTest` | Creacion de partida contra bot con codigo 201 y generacion de tableros (flota propia vs niebla de guerra enemiga); ejecucion de disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10) con error 400; rechazo de disparos duplicados sobre la misma celda con error 400; creacion de partida en dificultad HARD contra la IA experta (`AI-Expert`); devolucion de error 404 Not Found ante partidas inexistentes. | Integracion MockMvc / Motor Dominio | [PASS] (6/6) |
 | `LeaderboardControllerIntegrationTest` | Consulta autenticada de las mejores puntuaciones personales del usuario en sesion; consulta publica/autenticada del ranking global de jugadores ordenado descendentemente por puntuacion. | Integracion MockMvc / JPA | [PASS] (2/2) |
 | `JwtServiceTest` | Emision de tokens JWT firmados con algoritmo HMAC-SHA256, inclusion de claims y verificacion de vigencia temporal; validacion estricta de rechazo ante firmas manipuladas o tokens expirados. | Unitaria de Criptografia | [PASS] (2/2) |
+| `DatabaseConfigTest` | Verificacion de DataSource por defecto sin entorno; conversion y sanitizacion de URLs cloud con protocolo `postgres://` y credenciales incrustadas a formato JDBC; preservacion de cadenas `jdbc:postgresql://`. | Unitaria de Infraestructura Cloud | [PASS] (3/3) |
 
 ---
 
@@ -69,6 +70,15 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | Verificacion de Tipos TypeScript | Comprobacion estricta sin errores de tipado (`noImplicitAny`, interfaces de dominio, DTOs de API). | TypeScript Compiler (`tsc`) | [PASS] |
 | Build de Produccion Next.js | Compilacion de rutas estaticas, empaquetado de componentes React 19 y optimizacion Turbopack. | Next.js Build Pipeline | [PASS] |
 | Flujo de Control de Acceso (Auth Guard) | Verificacion de bloqueo previo a despliegue sin credenciales: sonido de alarma naval, toast descriptivo y apertura forzada de `AuthModal`. | React State Machine & API Client | [PASS] |
+
+---
+
+### 2.6 Pipeline de Integracion Continua (CI/CD en GitHub Actions)
+
+| Job de Pipeline | Pasos Ejecutados | Entorno | Disparador | Estado |
+| :--- | :--- | :--- | :--- | :---: |
+| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (75 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
+| `frontend-validation` | Checkout, Setup Node.js 20, Cache npm, `npm ci`, `npx tsc --noEmit`, `npm run build`. | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 
 ---
 
