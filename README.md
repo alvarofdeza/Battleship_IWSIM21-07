@@ -204,7 +204,7 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
 3. En la seccion de variables de entorno (**Environment Variables**), configura:
    * `SPRING_PROFILES_ACTIVE`: `prod`
    * `SPRING_DATASOURCE_URL`: *(Cadena de conexion copiada de Neon)*
-   * `JWT_SECRET`: `404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970`
+   * `JWT_SECRET`: *(Cadena secreta aleatoria de al menos 64 caracteres en hexadecimal, o la definida en `.env.example`)*
 4. Pulsa **Create Web Service**. Render compila la imagen multi-stage y publica la URL HTTPS: `https://battleship-backend-ys61.onrender.com`.
 5. **Configuracion de Keep-Alive y Gestion de Cuota (750h/mes):**
    * Render Free proporciona 750 horas de computo al mes compartidas entre todos los servicios de la cuenta. Un servicio 24/7 consume ~744 horas.
