@@ -222,4 +222,12 @@ class GameControllerIntegrationTest {
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().is4xxClientError());
     }
+
+    @Test
+    @DisplayName("Reclamar partida inexistente devuelve 404 Not Found")
+    void testClaimNonExistentGameReturns404() throws Exception {
+        mockMvc.perform(post("/api/v1/games/non-existent-session/claim")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isNotFound());
+    }
 }

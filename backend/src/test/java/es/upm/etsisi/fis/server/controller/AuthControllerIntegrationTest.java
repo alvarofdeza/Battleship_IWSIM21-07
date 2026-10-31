@@ -223,4 +223,46 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(resendReq)))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Verificar correo de usuario ya verificado rechaza con 400 Bad Request")
+    void testVerifyAlreadyVerifiedEmailFails() throws Exception {
+        // 'alvaro' ya es un usuario pre-sembrado con email verificado
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest("alvaro", "123456");
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyReq)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Verificar codigo OTP expirado rechaza con 400 Bad Request")
+    void testVerifyExpiredOtpFails() throws Exception {
+        RegisterRequest regReq = new RegisterRequest("cadetexp", "cadetexp@battleship.com", "password123");
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated());
+
+        // Forzar expiracion en base de datos
+        UserEntity user = userRepository.findByUsername("cadetexp").orElseThrow();
+        user.setOtpExpiresAt(java.time.LocalDateTime.now().minusMinutes(5));
+        userRepository.save(user);
+
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadetexp", user.getVerificationOtp());
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyReq)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Reenviar codigo OTP a usuario inexistente devuelve 404 Not Found")
+    void testResendOtpNonexistentUserReturns404() throws Exception {
+        ResendOtpRequest resendReq = new ResendOtpRequest("nonexistent_user_99");
+        mockMvc.perform(post("/api/v1/auth/resend-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resendReq)))
+                .andExpect(status().isNotFound());
+    }
 }

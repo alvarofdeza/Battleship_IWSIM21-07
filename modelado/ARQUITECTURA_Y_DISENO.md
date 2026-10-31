@@ -226,7 +226,7 @@ flowchart TD
     subgraph ClientLayer ["Clientes Externos"]
         SWAGGER["Swagger UI / OpenAPI Console"]
         SPA["Frontend SPA (React / Next.js)"]
-        TESTS["MockMvc Test Suites (32 tests)"]
+        TESTS["MockMvc & JUnit Test Suites (42 tests)"]
     end
 
     subgraph SecurityBoundary ["Filtro de Seguridad Spring Security"]
@@ -446,7 +446,7 @@ flowchart TD
 
     subgraph GitHubActions ["Integracion Continua (CI/CD)"]
         GH_RUNNER["GitHub Actions Runner (Ubuntu)"]
-        TEST_JOB["Maven multi-module (91 tests passing)"]
+        TEST_JOB["Maven multi-module (101 tests passing)"]
         LINT_JOB["Next.js build & TypeScript verify"]
     end
 

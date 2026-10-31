@@ -110,6 +110,16 @@ class LeaderboardControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Consultar partidas recientes personales devuelve orden cronologico")
+    void testGetMyRecentMatches() throws Exception {
+        mockMvc.perform(get("/api/v1/leaderboard/me/recent")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
     @DisplayName("Consultar expediente militar y estadisticas de carrera del oficial")
     void testGetMyStats() throws Exception {
         mockMvc.perform(get("/api/v1/leaderboard/me/stats")

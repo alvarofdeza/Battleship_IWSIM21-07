@@ -20,7 +20,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
    * **Documentacion y JavaDoc 100% en espanol:** Especificaciones técnicas en Markdown, bloques JavaDoc en clases e interfaces, y comentarios explicativos de algoritmos.
 
 3. **Suite de Tests Automatizada al 100%:**
-   * Cobertura de pruebas unitarias y de integración para toda la lógica implementada (91 tests automatizados: 59 en core y 32 en backend).
+   * Cobertura de pruebas unitarias y de integración para toda la lógica implementada (101 tests automatizados: 59 en core y 42 en backend).
    * La suite de tests de Maven debe ejecutarse sin un solo fallo ni error (`BUILD SUCCESS`).
    * No se permiten dependencias de tests basadas en trucos de reflexión frágiles ni estados sucios entre ejecuciones.
 
@@ -96,7 +96,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 - [ ] **Fase 5: Saneamiento de Base de Datos en Neon, Suite de Tests y Despliegue:**
   - [x] Sembrado de record de honor de referencia para `alvaro` y aislamiento en base de datos.
-  - [x] Suite de pruebas automatizada ampliada cubriendo los nuevos endpoints y calculos matematicos (91 tests passing).
+  - [x] Suite de pruebas automatizada ampliada cubriendo los nuevos endpoints y calculos matematicos (101 tests passing).
   - [ ] Despliegue en produccion en Render y Vercel (tras push manual del desarrollador).
 
 ---

@@ -12,7 +12,7 @@
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)
 ![JUnit5](https://img.shields.io/badge/JUnit5-5.10.2-25A162?style=for-the-badge&logo=junit5&logoColor=white)
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-91%20Passed-success?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-101%20Passed-success?style=for-the-badge)
 
 Implementacion full-stack modular del clasico juego de combate naval Hundir la Flota (Battleship). Inicialmente desarrollado en el ambito academico para la asignatura Fundamentos de Ingenieria del Software en la Universidad Politecnica de Madrid (UPM - ETSISI), este proyecto ha sido transformado en una plataforma profesional desacoplada con **Clean Architecture**, **Spring Boot 3**, **Spring Security con JWT**, **persistencia relacional Spring Data JPA**, **algoritmos avanzados de Inteligencia Artificial** e **interfaz tactica web militar en Next.js**.
 
@@ -55,15 +55,15 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
   * Diseno desacoplado donde el motor de dominio y la capa de persistencia se comunican exclusivamente mediante abstracciones e interfaces estandar (JPA, JDBC, Spring Security).
   * Ningun modulo depende de APIs propietarias de proveedores de hosting o de base de datos, garantizando portabilidad absoluta entre entornos locales (Docker Compose), bases de datos serverless (Neon) o nubes empresariales (AWS, Render, Railway).
   * Desacoplamiento total de dependencias legacy: sustitucion del antiguo `externals-5.1.jar` por la clase autonoma `ExternalLDAP` con modo silencioso para ejecucion en contenedores.
-* **Suite Automatizada de 91 Tests (100% Cobertura de Integracion y Dominio):**
-  * 59 tests en `core` y 32 tests de integracion y configuracion con MockMvc en `backend`.
+* **Suite Automatizada de 101 Tests (100% Cobertura de Integracion y Dominio):**
+  * 59 tests en `core` y 42 tests de integracion y configuracion con MockMvc en `backend`.
 
 ---
 
 ## 2. Documentacion Tecnica y Modelado
 
 * [modelado/ARQUITECTURA_Y_DISENO.md](modelado/ARQUITECTURA_Y_DISENO.md): Diagramas de componentes, arquitectura enterprise Spring Boot 3, arquitectura web frontend, diagrama de clases, diagrama entidad-relacion (ERD), catalogo de endpoints REST y topologia DevOps.
-* [pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md](pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md): Matriz de trazabilidad y reporte de los 91 tests automatizados (JUnit 5, Mockito, Spring Security Test, MockMvc) y verificacion de compilacion frontend.
+* [pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md](pruebas/PLAN_Y_REPORTE_DE_PRUEBAS.md): Matriz de trazabilidad y reporte de los 101 tests automatizados (JUnit 5, Mockito, Spring Security Test, MockMvc) y verificacion de compilacion frontend.
 * [AGENTS.md](AGENTS.md): Hoja de ruta (Roadmap), Definition of Done (DoD) y registro de hitos del proyecto.
 * `legacy/`: Archivo historico de artefactos academicos de la universidad (diagramas originales, pruebas iniciales y PDFs) preservados conforme a las normas de ingenieria.
 
@@ -94,7 +94,7 @@ Para iniciar automaticamente el backend Spring Boot y el frontend Next.js en ven
 * **Detener:** Doble clic en `stop-dev.bat` o ejecutar en PowerShell `.\stop-dev.ps1` (o pulsar `Ctrl + C` en cada terminal)
 
 ### Ejecucion de la Suite Completa de Tests
-Para compilar y verificar los 91 tests unitarios y de integracion:
+Para compilar y verificar los 101 tests unitarios y de integracion:
 
 ```bash
 # En Windows:
@@ -238,7 +238,7 @@ Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red
 ## 7. Pipeline de Integracion Continua (GitHub Actions)
 
 El archivo `.github/workflows/ci.yml` ejecuta una suite automatizada de verificacion de calidad en cada `push` o `pull request` dirigido a la rama `main`:
-* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 91 tests unitarios y de integracion (`BUILD SUCCESS`).
+* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 101 tests unitarios y de integracion (`BUILD SUCCESS`).
 * **Job Frontend:** Descarga Node 20, verifica tipos estricto con TypeScript (`tsc --noEmit`) y compila la aplicacion Next.js con Turbopack.
 
 ---

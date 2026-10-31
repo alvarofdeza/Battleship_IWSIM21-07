@@ -8,11 +8,11 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **91** (59 core + 32 backend) |
+| **Total de Tests Automatizados** | **101** (59 core + 42 backend) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
-| **Tiempo de Ejecucion Total** | **~10.1 segundos** |
+| **Tiempo de Ejecucion Total** | **~11.5 segundos** |
 | **Frameworks de Testing** | JUnit 5 (Jupiter 5.10.2), Spring Boot Starter Test, Spring Security Test, MockMvc, Mockito 5.11, AssertJ 3.25 |
 | **Herramienta de Compilacion** | Apache Maven Wrapper (`./mvnw` / `mvnw.cmd`) |
 
@@ -56,9 +56,10 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Clase de Test | Casos de Prueba Verificados | Metodologia | Estado |
 | :--- | :--- | :--- | :---: |
-| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y despacho de OTP; rechazo de usuario o email duplicado con error 400; login con credenciales correctas (200 OK) e incorrectas (401); consulta de `/me` con JWT y rechazo 403 sin token; verificacion de correo mediante OTP de 6 digitos; rechazo de codigo OTP invalido o expirado; reenvio de OTP; cambio seguro de password con validacion BCrypt y rechazo de contraseña actual incorrecta. | Integracion MockMvc / Spring Security | [PASS] (11/11) |
-| `GameControllerIntegrationTest` | Creacion de partida vs bot con codigo 201; disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10); rechazo de disparos duplicados; combate en HARD contra IA experta (`AI-Expert`); error 404 ante partidas inexistentes; ejecucion en Modo Invitado en memoria sin persistir en BD; reclamacion exitosa (`POST /claim`) de partida de invitado tras autenticacion. | Integracion MockMvc / Motor Dominio | [PASS] (9/9) |
-| `LeaderboardControllerIntegrationTest` | Consulta publica del ranking de mejores partidas individuales (`/matches`) con badges de victoria y derrota; consulta del ranking de oficiales ordenado por suma de puntos (`/players`); consulta de Top 10 personal del oficial (`/me/matches`); historial de ultimas 10 batallas (`/me/recent`); estadisticas de carrera militar y rango naval (`/me/stats`); verificacion de persistencia limpia y sembrado benchmark inicial. | Integracion MockMvc / JPA | [PASS] (6/6) |
+| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y despacho de OTP; rechazo de usuario o email duplicado con error 400; login con credenciales correctas (200 OK) e incorrectas (401); consulta de `/me` con JWT y rechazo 403 sin token; verificacion de correo mediante OTP de 6 digitos; rechazo de codigo OTP invalido o expirado; reenvio de OTP; rechazo de verificacion para email ya verificado (400); rechazo de OTP expirado (400); retorno 404 ante usuario inexistente en reenvio; cambio seguro de password con validacion BCrypt y rechazo de contraseña actual incorrecta. | Integracion MockMvc / Spring Security | [PASS] (14/14) |
+| `GameControllerIntegrationTest` | Creacion de partida vs bot con codigo 201; disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10); rechazo de disparos duplicados; combate en HARD contra IA experta (`AI-Expert`); error 404 ante partidas inexistentes; ejecucion en Modo Invitado en memoria sin persistir en BD; rechazo 403 al intentar reclamar sin JWT; rechazo de reclamacion para partida no finalizada; error 404 ante reclamacion de sesion inexistente. | Integracion MockMvc / Motor Dominio | [PASS] (10/10) |
+| `LeaderboardControllerIntegrationTest` | Consulta publica del ranking de mejores partidas individuales (`/matches`) con badges de victoria y derrota; consulta del ranking de oficiales ordenado por suma de puntos (`/players`); consulta de Top 10 personal del oficial (`/me/matches`); historial cronologico de ultimas 10 batallas (`/me/recent`); estadisticas de carrera militar y rango naval (`/me/stats`); verificacion de persistencia limpia y sembrado benchmark inicial. | Integracion MockMvc / JPA | [PASS] (7/7) |
+| `NavalRankCalculatorTest` | Validacion de todos los umbrales de rango naval (Cadete Naval <= 2500, Alferez de Fragata <= 7500, Teniente de Navio <= 15000, Capitan de Navio <= 30000, Almirante de la Flota > 30000) y proteccion ante valores negativos. | Unitaria de Dominio | [PASS] (5/5) |
 | `JwtServiceTest` | Emision de tokens JWT firmados con algoritmo HMAC-SHA256, inclusion de claims y verificacion de vigencia temporal; validacion estricta de rechazo ante firmas manipuladas o tokens expirados. | Unitaria de Criptografia | [PASS] (2/2) |
 | `DatabaseConfigTest` | Verificacion de DataSource por defecto sin entorno; conversion y sanitizacion de URLs cloud con protocolo `postgres://` y credenciales incrustadas a formato JDBC; preservacion de cadenas `jdbc:postgresql://`. | Unitaria de Infraestructura Cloud | [PASS] (3/3) |
 | `HealthControllerIntegrationTest` | Verificacion de endpoint `/healthz` devolviendo codigo 200 OK, servicio identificado y estado UP sin requerir cabeceras de autorizacion. | Integracion MockMvc / Cloud Health | [PASS] (1/1) |
@@ -81,7 +82,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Job de Pipeline | Pasos Ejecutados | Entorno | Disparador | Estado |
 | :--- | :--- | :--- | :--- | :---: |
-| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (91 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
+| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (101 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 | `frontend-validation` | Checkout, Setup Node.js 20, Cache npm, `npm ci`, `npx tsc --noEmit`, `npm run build`. | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 
 ---
