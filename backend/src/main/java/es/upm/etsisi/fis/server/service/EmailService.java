@@ -58,7 +58,8 @@ public class EmailService {
             String htmlContent = buildTacticalEmailHtml(username, otp);
 
             Map<String, Object> payload = new HashMap<>();
-            payload.put("from", "Battleship Command <" + fromEmail + ">");
+            String sender = fromEmail.contains("<") ? fromEmail : "Battleship Command <" + fromEmail + ">";
+            payload.put("from", sender);
             payload.put("to", List.of(toEmail));
             payload.put("subject", subject);
             payload.put("html", htmlContent);
