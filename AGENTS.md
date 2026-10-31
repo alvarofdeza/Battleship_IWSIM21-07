@@ -20,7 +20,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
    * **Documentacion y JavaDoc 100% en espanol:** Especificaciones técnicas en Markdown, bloques JavaDoc en clases e interfaces, y comentarios explicativos de algoritmos.
 
 3. **Suite de Tests Automatizada al 100%:**
-   * Cobertura de pruebas unitarias y de integración para toda la lógica implementada.
+   * Cobertura de pruebas unitarias y de integración para toda la lógica implementada (78 tests automatizados: 58 en core y 20 en backend).
    * La suite de tests de Maven debe ejecutarse sin un solo fallo ni error (`BUILD SUCCESS`).
    * No se permiten dependencias de tests basadas en trucos de reflexión frágiles ni estados sucios entre ejecuciones.
 
@@ -35,6 +35,12 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
    * El dominio debe permanecer agnostico a frameworks de infraestructura y a proveedores cloud concretos.
    * Se debe cumplir estrictamente el principio de responsabilidad unica (SRP) e inversion de dependencias (DIP), asegurando que la base de datos se consuma como PostgreSQL estandar mediante interfaces JDBC / Spring Data JPA, sin acoplar la logica de negocio a SDKs o servicios propietarios de terceros.
    * Toda decision arquitectonica debe priorizar la mantenibilidad a largo plazo, la alta cohesion, el bajo acoplamiento y la total portabilidad entre entornos de ejecucion.
+
+7. **Control Estricto de Despliegue Git (Push Exclusivamente Manual por el Desarrollador):**
+   * Queda terminantemente prohibido que el asistente AI ejecute comandos `git push` o `git push origin main`.
+   * En el entorno de desarrollo conviven multiples identidades y credenciales de Git que requieren seleccion y autorizacion manual interactiva por parte del usuario.
+   * La labor del agente se limita a la preparacion local de commits (staging, generacion de commit semantico descriptivo y comprobacion de estado limpio en `git status`).
+   * La orden de subida a ramas remotas (`git push origin main`) debe facilitarse siempre en texto plano al desarrollador para su ejecucion manual soberana.
 
 ---
 
@@ -106,8 +112,8 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
   - [x] Configuracion de esquema de seguridad Bearer JWT en Swagger (`OpenApiConfig`).
   - [x] Swagger UI disponible en `/swagger-ui.html` y esquema JSON en `/v3/api-docs`.
 - [x] **Suite de Pruebas de Integracion MockMvc y Configuracion:**
-  - [x] 19 tests automatizados en `battleship-backend` cubriendo flujos de autenticacion, reglas de combate, niebla de guerra, disparos duplicados, limites, clasificaciones y resiliencia de conexion cloud.
-  - [x] Total de 75 tests automatizados pasando al 100% en todo el repositorio.
+  - [x] 20 tests automatizados en `battleship-backend` cubriendo flujos de autenticacion, reglas de combate, niebla de guerra, disparos duplicados, limites, clasificaciones, health check (`/healthz`) y resiliencia de conexion cloud.
+  - [x] Total de 78 tests automatizados pasando al 100% en todo el repositorio.
 
 ---
 
@@ -129,17 +135,22 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 ---
 
-### [COMPLETADO] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
+### [EN CURSO] Hito 4: DevOps, Docker & Despliegue Cloud en Vivo
 *Objetivo:* Publicar la plataforma completa en internet con Live Demo publica de maximo impacto para portfolio.
 - [x] Dockerfile multi-stage optimizado para empaquetar el backend Spring Boot con Eclipse Temurin JDK/JRE 17 Alpine y usuario no privilegiado (`backend/Dockerfile`).
 - [x] Dockerfile multi-stage para el frontend Next.js 16 con empaquetado standalone ultra-ligero y usuario no privilegiado (`frontend/Dockerfile`).
 - [x] Archivo `docker-compose.yml` multi-servicio (Compose Spec v2) para levantar localmente el frontend, backend y PostgreSQL 16 con healthcheck y volumen persistente.
 - [x] Plantilla `.env.example` y archivos `.dockerignore` exhaustivos para aislamiento de entornos de desarrollo y produccion.
 - [x] Configuracion de resiliencia de conexion cloud en `DatabaseConfig.java` compatible con PostgreSQL en Neon, Render, Railway y Docker.
+- [x] Desacoplamiento total de dependencias legacy: sustitucion del JAR `externals-5.1.jar` por la clase autonoma `ExternalLDAP.java` con deteccion headless y suite unitaria `ExternalLDAPTest`.
+- [x] Endpoint de salud operativo `/healthz` (`HealthController`) con pase libre en `SecurityConfig` e integracion probada en `HealthControllerIntegrationTest`.
 - [x] Arquitectura de despliegue cloud permanente y sin coste: base de datos perpetua en Neon (sin caducidad de 30 dias), backend en Render con keep-alive ping (UptimeRobot) y frontend en Vercel con telemetria warm-up.
 - [x] Archivo de infraestructura como codigo `render.yaml` para despliegue automatizado con Docker en Render.
-- [x] Pipeline de integracion continua (CI/CD) con GitHub Actions (`.github/workflows/ci.yml`) que valida los 75 tests de Maven y compila el frontend en cada commit a `main`.
+- [x] Despliegue del backend en Render finalizado con exito y enlazado a Neon en Frankfurt (`eu-central-1`).
+- [x] Pipeline de integracion continua (CI/CD) con GitHub Actions (`.github/workflows/ci.yml`) que valida los 78 tests de Maven y compila el frontend en cada commit a `main`.
 - [x] README.md profesional con arquitectura de despliegue en Mermaid, insignias tecnicas (CI, Docker, Next.js, Spring Boot, PostgreSQL) y guia de ejecucion paso a paso.
+- [ ] Despliegue del frontend en Vercel conectando `NEXT_PUBLIC_API_URL` a la URL publica HTTPS de Render.
+- [ ] Configuracion de monitor keep-alive en UptimeRobot enviando peticiones cada 12 minutos a `/healthz`.
 
 ---
 

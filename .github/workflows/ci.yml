@@ -24,7 +24,7 @@ jobs:
       - name: Grant execution permission for Maven Wrapper
         run: chmod +x ./mvnw
 
-      - name: Build and execute automated test suite (75 tests)
+      - name: Build and execute automated test suite (78 tests)
         run: ./mvnw clean test -B
 
   frontend-validation:

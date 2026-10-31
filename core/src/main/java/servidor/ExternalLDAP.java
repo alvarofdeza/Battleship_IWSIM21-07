@@ -9,10 +9,30 @@ import java.awt.GraphicsEnvironment;
  */
 public class ExternalLDAP {
 
+    private static boolean interactiveEnabled = !GraphicsEnvironment.isHeadless();
+
     /**
      * Constructor por defecto.
      */
     public ExternalLDAP() {
+    }
+
+    /**
+     * Configura si el emulador debe intentar abrir ventanas graficas de dialogo.
+     *
+     * @param enabled Verdadero para permitir dialogos interactivos, falso para modo silencioso.
+     */
+    public static void setInteractiveEnabled(boolean enabled) {
+        interactiveEnabled = enabled;
+    }
+
+    /**
+     * Indica si el modo interactivo se encuentra activo.
+     *
+     * @return Verdadero si interactua graficamente, falso si opera en modo headless o silencioso.
+     */
+    public static boolean isInteractiveEnabled() {
+        return interactiveEnabled;
     }
 
     /**
@@ -21,7 +41,7 @@ public class ExternalLDAP {
      * @return Identificador alfanumerico del usuario o null si se cancela o si el entorno carece de interfaz grafica.
      */
     public static String LoginLDAP() {
-        if (!GraphicsEnvironment.isHeadless()) {
+        if (interactiveEnabled && !GraphicsEnvironment.isHeadless()) {
             try {
                 String input = JOptionPane.showInputDialog(
                         null,

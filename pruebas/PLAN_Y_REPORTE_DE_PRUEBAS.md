@@ -8,11 +8,11 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **75** (56 core + 19 backend) |
+| **Total de Tests Automatizados** | **78** (58 core + 20 backend) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
-| **Tiempo de Ejecucion Total** | **~9.4 segundos** |
+| **Tiempo de Ejecucion Total** | **~8.2 segundos** |
 | **Frameworks de Testing** | JUnit 5 (Jupiter 5.10.2), Spring Boot Starter Test, Spring Security Test, MockMvc, Mockito 5.11, AssertJ 3.25 |
 | **Herramienta de Compilacion** | Apache Maven Wrapper (`./mvnw` / `mvnw.cmd`) |
 
@@ -48,6 +48,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | `AuthControllerTest` | Instancia Singleton, lectura de lista negra desde resources (`list_raw.txt`), validacion estricta de nombres de usuario (longitud, alfanumericos, nombres restringidos). | Unitaria / Validacion | [PASS] (4/4) |
 | `DataControllerTest` | Inicializacion de sesion mock para pruebas (`initForTest`), operaciones de persistencia (`saveOrUpdate`, `delete`, `initializeUserRelations`). | Unitaria / Mock | [PASS] (3/3) |
 | `UserControllerTest` | Alta y baja de usuarios, busqueda por ID, listado general de usuarios y claves, caso de usuario inexistente. | Unitaria | [PASS] (4/4) |
+| `ExternalLDAPTest` | Instanciacion exitosa, ejecucion segura de `LoginLDAP()` en modo no interactivo/headless retornando null sin excepciones y conmutacion de estado interactivo. | Unitaria / Desacoplamiento Legacy | [PASS] (2/2) |
 
 ---
 
@@ -60,6 +61,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | `LeaderboardControllerIntegrationTest` | Consulta autenticada de las mejores puntuaciones personales del usuario en sesion; consulta publica/autenticada del ranking global de jugadores ordenado descendentemente por puntuacion. | Integracion MockMvc / JPA | [PASS] (2/2) |
 | `JwtServiceTest` | Emision de tokens JWT firmados con algoritmo HMAC-SHA256, inclusion de claims y verificacion de vigencia temporal; validacion estricta de rechazo ante firmas manipuladas o tokens expirados. | Unitaria de Criptografia | [PASS] (2/2) |
 | `DatabaseConfigTest` | Verificacion de DataSource por defecto sin entorno; conversion y sanitizacion de URLs cloud con protocolo `postgres://` y credenciales incrustadas a formato JDBC; preservacion de cadenas `jdbc:postgresql://`. | Unitaria de Infraestructura Cloud | [PASS] (3/3) |
+| `HealthControllerIntegrationTest` | Verificacion de endpoint `/healthz` devolviendo codigo 200 OK, servicio identificado y estado UP sin requerir cabeceras de autorizacion. | Integracion MockMvc / Cloud Health | [PASS] (1/1) |
 
 ---
 
@@ -77,7 +79,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Job de Pipeline | Pasos Ejecutados | Entorno | Disparador | Estado |
 | :--- | :--- | :--- | :--- | :---: |
-| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (75 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
+| `backend-validation` | Checkout, Setup JDK 17 (Temurin), Cache Maven, `./mvnw clean test -B` (78 tests). | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 | `frontend-validation` | Checkout, Setup Node.js 20, Cache npm, `npm ci`, `npx tsc --noEmit`, `npm run build`. | Ubuntu Latest | Push / PR `main` | [CONFIGURADO] |
 
 ---

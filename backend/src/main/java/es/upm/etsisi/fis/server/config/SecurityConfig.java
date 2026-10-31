@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)) // H2 Console
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/healthz",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
                                 "/v3/api-docs/**",
