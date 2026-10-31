@@ -8,12 +8,12 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **56** |
+| **Total de Tests Automatizados** | **72** (56 core + 16 server) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
-| **Tiempo de Ejecucion Total** | **~3.5 segundos** |
-| **Frameworks de Testing** | JUnit 5 (Jupiter 5.10.2), Mockito 5.11, AssertJ 3.25 |
+| **Tiempo de Ejecucion Total** | **~9.2 segundos** |
+| **Frameworks de Testing** | JUnit 5 (Jupiter 5.10.2), Spring Boot Starter Test, Spring Security Test, MockMvc, Mockito 5.11, AssertJ 3.25 |
 | **Herramienta de Compilacion** | Apache Maven Wrapper (`./mvnw` / `mvnw.cmd`) |
 
 ---
@@ -48,6 +48,17 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | `AuthControllerTest` | Instancia Singleton, lectura de lista negra desde resources (`list_raw.txt`), validacion estricta de nombres de usuario (longitud, alfanumericos, nombres restringidos). | Unitaria / Validacion | [PASS] (4/4) |
 | `DataControllerTest` | Inicializacion de sesion mock para pruebas (`initForTest`), operaciones de persistencia (`saveOrUpdate`, `delete`, `initializeUserRelations`). | Unitaria / Mock | [PASS] (3/3) |
 | `UserControllerTest` | Alta y baja de usuarios, busqueda por ID, listado general de usuarios y claves, caso de usuario inexistente. | Unitaria | [PASS] (4/4) |
+
+---
+
+### 2.4 Backend Enterprise & REST API (`es.upm.etsisi.fis.server`)
+
+| Clase de Test | Casos de Prueba Verificados | Metodologia | Estado |
+| :--- | :--- | :--- | :---: |
+| `AuthControllerIntegrationTest` | Registro exitoso de nuevo usuario con codigo 201 y emision de JWT; rechazo de usuario o email duplicado con error 400; inicio de sesion con credenciales correctas (200 OK); rechazo de credenciales erroneas con error 401; acceso al endpoint protegido `/api/v1/auth/me` con cabecera `Authorization: Bearer <token>`; rechazo estricto con codigo 403 Forbidden al intentar acceder sin token. | Integracion MockMvc / Spring Security | [PASS] (6/6) |
+| `GameControllerIntegrationTest` | Creacion de partida contra bot con codigo 201 y generacion de tableros (flota propia vs niebla de guerra enemiga); ejecucion de disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10) con error 400; rechazo de disparos duplicados sobre la misma celda con error 400; creacion de partida en dificultad HARD contra la IA experta (`AI-Expert`); devolucion de error 404 Not Found ante partidas inexistentes. | Integracion MockMvc / Motor Dominio | [PASS] (6/6) |
+| `LeaderboardControllerIntegrationTest` | Consulta autenticada de las mejores puntuaciones personales del usuario en sesion; consulta publica/autenticada del ranking global de jugadores ordenado descendentemente por puntuacion. | Integracion MockMvc / JPA | [PASS] (2/2) |
+| `JwtServiceTest` | Emision de tokens JWT firmados con algoritmo HMAC-SHA256, inclusion de claims y verificacion de vigencia temporal; validacion estricta de rechazo ante firmas manipuladas o tokens expirados. | Unitaria de Criptografia | [PASS] (2/2) |
 
 ---
 

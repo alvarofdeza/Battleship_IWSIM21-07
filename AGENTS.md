@@ -76,14 +76,33 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 ---
 
-### [PENDIENTE] Hito 2: Backend Enterprise con Spring Boot 3 & REST API
-*Objetivo:* Transformar la aplicacion monolitica en un backend desacoplado, modular y moderno.
-- [ ] Inicializacion de modulo Spring Boot 3 con Java 17/21.
-- [ ] Inyeccion de dependencias (IoC / `@Service`, `@RestController`) eliminando Singletons estaticos.
-- [ ] Repositorios Spring Data JPA con H2 en memoria para tests y PostgreSQL listo para produccion.
-- [ ] Endpoints REST documentados interactivamente con OpenAPI / Swagger UI (`/api/v1/games`, `/api/v1/shots`, `/api/v1/leaderboard`).
-- [ ] Sustitucion del mock LDAP legacy por autenticacion moderna con JWT / Spring Security.
-- [ ] Tests de integracion con Mockito y WebTestClient.
+### [COMPLETADO] Hito 2: Backend Enterprise con Spring Boot 3 & REST API
+*Objetivo:* Transformar la aplicacion monolitica en un backend desacoplado, modular y moderno con Spring Boot 3, Spring Data JPA, JWT y documentacion interactiva OpenAPI.
+
+- [x] **Arquitectura Multi-Modulo Maven:**
+  - [x] Modulo `battleship-server` configurado con Spring Boot 3.2.5 BOM y Java 17.
+  - [x] Integracion limpia con `battleship-core` aislando las dependencias legacy de Hibernate 5 para evitar conflictos de classpath.
+  - [x] Configuracion de perfiles `application.yml` (H2 en memoria con consola activa) y `application-prod.yml` (PostgreSQL).
+- [x] **Autenticacion y Seguridad Moderna (Spring Security 6 + JWT):**
+  - [x] Sustitucion definitiva del mock LDAP de la universidad por seguridad stateless basada en tokens Bearer JWT firmados con HMAC-SHA256.
+  - [x] Implementacion de `JwtService`, `JwtAuthenticationFilter`, `UserDetailsServiceImpl` y cifrado de contraseñas mediante `BCryptPasswordEncoder`.
+  - [x] Politica CORS abierta para integracion fluida con clientes SPA (React / Next.js) y despliegues en Vercel.
+- [x] **Persistencia Empresarial (Spring Data JPA):**
+  - [x] Entidades de dominio mapeadas a tablas relacionales: `UserEntity`, `GameRecordEntity`, `MoveRecordEntity`, `LeaderboardScoreEntity`.
+  - [x] Repositorios desacoplados con metodos de consulta especificos (`UserRepository`, `GameRecordRepository`, `MoveRecordRepository`, `LeaderboardScoreRepository`).
+  - [x] Sembrado automatico de usuarios iniciales en arranque (`admin`, `alvaro`, `adrian`).
+- [x] **Capa de Controladores REST y Manejador Global de Errores:**
+  - [x] `AuthController`: Registro (`/register`), Login (`/login`) y Perfil del usuario autenticado (`/me`).
+  - [x] `GameController`: Creacion de partida vs IA (`/games`), consulta de estado con niebla de guerra (`/games/{id}`), disparo humano con contraataque sincronizado de la IA (`/games/{id}/shots`), e historial de ataques (`/games/{id}/history`).
+  - [x] `LeaderboardController`: Top 10 personal (`/leaderboard/personal`) y ranking mundial (`/leaderboard/global`).
+  - [x] `GlobalExceptionHandler` con estandarizacion de errores HTTP 400 Bad Request, 401 Unauthorized, 403 Forbidden y 404 Not Found (`ResourceNotFoundException`).
+- [x] **Documentacion Interactiva OpenAPI 3 / Swagger UI:**
+  - [x] Integracion de `springdoc-openapi-starter-webmvc-ui` 2.5.0.
+  - [x] Configuracion de esquema de seguridad Bearer JWT en Swagger (`OpenApiConfig`).
+  - [x] Swagger UI disponible en `/swagger-ui.html` y esquema JSON en `/v3/api-docs`.
+- [x] **Suite de Pruebas de Integracion MockMvc:**
+  - [x] 16 tests automatizados en `battleship-server` cubriendo flujos de autenticacion, reglas de combate, niebla de guerra, disparos duplicados, limites y clasificaciones.
+  - [x] Total de 72 tests automatizados pasando al 100% en todo el repositorio.
 
 ---
 

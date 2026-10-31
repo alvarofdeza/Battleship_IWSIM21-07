@@ -27,6 +27,12 @@ Thumbs.db
 # Embedded Databases
 *.mv.db
 *.trace.db
+**/*.mv.db
+**/*.trace.db
+
+# Compiled binaries
+*.class
+**/*.class
 
 # IDE-specific files (optional)
 .vscode/

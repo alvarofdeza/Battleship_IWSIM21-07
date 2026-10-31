@@ -214,3 +214,134 @@ flowchart TD
     Checkerboard --> Fire
     HeatmapMax --> Fire
 ```
+
+---
+
+## 5. Arquitectura Backend Enterprise (Spring Boot 3 & REST API)
+
+El modulo `battleship-server` implementa una arquitectura desacoplada basada en capas de servicios, repositorios reactivos/JPA y seguridad sin estado (stateless) mediante JWT.
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer ["Clientes Externos"]
+        SWAGGER["Swagger UI / OpenAPI Console"]
+        SPA["Frontend SPA (React / Next.js)"]
+        TESTS["MockMvc Test Suites"]
+    end
+
+    subgraph SecurityBoundary ["Filtro de Seguridad Spring Security"]
+        JWT_FILTER["JwtAuthenticationFilter"]
+        JWT_SERVICE["JwtService (HMAC-SHA256)"]
+        AUTH_MGR["AuthenticationManager / DaoAuthenticationProvider"]
+    end
+
+    subgraph RestControllers ["Capa de Controladores REST (@RestController)"]
+        AC_REST["AuthController (/api/v1/auth)"]
+        GC_REST["GameController (/api/v1/games)"]
+        LC_REST["LeaderboardController (/api/v1/leaderboard)"]
+        EX_ADVICE["GlobalExceptionHandler (@RestControllerAdvice)"]
+    end
+
+    subgraph BusinessServices ["Capa de Negocio (@Service)"]
+        AUTH_SRV["AuthService"]
+        GAME_SRV["GameService"]
+        LEAD_SRV["LeaderboardService"]
+    end
+
+    subgraph CoreEngineModule ["Motor de Dominio (battleship-core)"]
+        CORE_GAME["Game / Board / Ships / AiPlayer"]
+    end
+
+    subgraph DataRepositories ["Capa de Datos (@Repository - Spring Data JPA)"]
+        USER_REPO["UserRepository"]
+        GAME_REPO["GameRecordRepository"]
+        MOVE_REPO["MoveRecordRepository"]
+        LEAD_REPO["LeaderboardScoreRepository"]
+    end
+
+    subgraph DatabaseLayer ["Base de Datos"]
+        H2_DB[(H2 In-Memory DB / Dev & Tests)]
+        PG_DB[(PostgreSQL / Production & Docker)]
+    end
+
+    ClientLayer -->|Bearer JWT en Header| JWT_FILTER
+    JWT_FILTER --> JWT_SERVICE
+    JWT_FILTER -->|SecurityContext| RestControllers
+    RestControllers --> BusinessServices
+    BusinessServices --> CoreEngineModule
+    BusinessServices --> DataRepositories
+    DataRepositories --> H2_DB
+    DataRepositories --> PG_DB
+    AUTH_SRV --> AUTH_MGR
+```
+
+---
+
+## 6. Modelo Entidad-Relacion (Spring Data JPA)
+
+```mermaid
+erDiagram
+    USERS ||--o{ GAME_RECORDS : plays
+    USERS ||--o{ LEADERBOARD_SCORES : achieves
+    GAME_RECORDS ||--o{ MOVE_RECORDS : logs
+
+    USERS {
+        Long id PK
+        String username UK
+        String email UK
+        String password
+        String role
+        LocalDateTime createdAt
+    }
+
+    GAME_RECORDS {
+        String gameId PK
+        String player1Username
+        String player2Username
+        String gameMode
+        String aiDifficulty
+        String status
+        String winnerUsername
+        LocalDateTime createdAt
+        LocalDateTime finishedAt
+    }
+
+    MOVE_RECORDS {
+        Long id PK
+        String gameId FK
+        String playerUsername
+        int rowNumber
+        int colNumber
+        String result
+        LocalDateTime timestamp
+    }
+
+    LEADERBOARD_SCORES {
+        Long id PK
+        String playerUsername FK
+        Long points
+        String gameId
+        LocalDateTime achievedAt
+    }
+```
+
+---
+
+## 7. Catalogo de Endpoints REST (OpenAPI 3 / Swagger)
+
+| Metodo | Ruta | Descripcion | Autenticacion |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Registro de nuevo jugador | Publico |
+| `POST` | `/api/v1/auth/login` | Inicio de sesion y obtencion de Bearer JWT | Publico |
+| `GET` | `/api/v1/auth/me` | Consulta de perfil del usuario en sesion | Bearer JWT |
+| `POST` | `/api/v1/games` | Creacion de nueva partida vs IA (EASY, NORMAL, HARD) | Bearer JWT |
+| `GET` | `/api/v1/games/{gameId}` | Estado de partida con niebla de guerra para el rival | Bearer JWT |
+| `POST` | `/api/v1/games/{gameId}/shots` | Disparo humano y contraataque reactivo de IA | Bearer JWT |
+| `GET` | `/api/v1/games/{gameId}/history` | Trazabilidad completa de disparos de la partida | Bearer JWT |
+| `GET` | `/api/v1/leaderboard/personal` | Top 10 puntuaciones individuales del usuario | Bearer JWT |
+| `GET` | `/api/v1/leaderboard/global` | Ranking global con los mejores resultados | Bearer JWT |
+| `GET` | `/swagger-ui.html` | Interfaz interactiva de documentacion OpenAPI | Publico |
+| `GET` | `/v3/api-docs` | Especificacion JSON OpenAPI 3.0 | Publico |
+| `GET` | `/h2-console` | Consola web de administracion de base de datos H2 | Publico (Dev) |
+
+```
