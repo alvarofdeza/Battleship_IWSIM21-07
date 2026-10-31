@@ -8,7 +8,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 | Metrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Tests Automatizados** | **72** (56 core + 16 server) |
+| **Total de Tests Automatizados** | **72** (56 core + 16 backend) |
 | **Tests Fallidos** | **0** |
 | **Errores de Ejecucion** | **0** |
 | **Tests Omitidos / Skipped** | **0** |
@@ -51,7 +51,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 
 ---
 
-### 2.4 Backend Enterprise & REST API (`es.upm.etsisi.fis.server`)
+### 2.4 Backend Enterprise & REST API (`es.upm.etsisi.fis.server` en modulo `battleship-backend`)
 
 | Clase de Test | Casos de Prueba Verificados | Metodologia | Estado |
 | :--- | :--- | :--- | :---: |
@@ -59,6 +59,16 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | `GameControllerIntegrationTest` | Creacion de partida contra bot con codigo 201 y generacion de tableros (flota propia vs niebla de guerra enemiga); ejecucion de disparo y respuesta con contraataque sincronizado de la IA; trazabilidad del historial cronologico de movimientos; rechazo de coordenadas fuera de limites (10x10) con error 400; rechazo de disparos duplicados sobre la misma celda con error 400; creacion de partida en dificultad HARD contra la IA experta (`AI-Expert`); devolucion de error 404 Not Found ante partidas inexistentes. | Integracion MockMvc / Motor Dominio | [PASS] (6/6) |
 | `LeaderboardControllerIntegrationTest` | Consulta autenticada de las mejores puntuaciones personales del usuario en sesion; consulta publica/autenticada del ranking global de jugadores ordenado descendentemente por puntuacion. | Integracion MockMvc / JPA | [PASS] (2/2) |
 | `JwtServiceTest` | Emision de tokens JWT firmados con algoritmo HMAC-SHA256, inclusion de claims y verificacion de vigencia temporal; validacion estricta de rechazo ante firmas manipuladas o tokens expirados. | Unitaria de Criptografia | [PASS] (2/2) |
+
+---
+
+### 2.5 Verificacion y Compilacion Estricta del Frontend (`frontend/`)
+
+| Suite / Proceso | Casos de Prueba y Validacion | Herramienta | Estado |
+| :--- | :--- | :--- | :---: |
+| Verificacion de Tipos TypeScript | Comprobacion estricta sin errores de tipado (`noImplicitAny`, interfaces de dominio, DTOs de API). | TypeScript Compiler (`tsc`) | [PASS] |
+| Build de Produccion Next.js | Compilacion de rutas estaticas, empaquetado de componentes React 19 y optimizacion Turbopack. | Next.js Build Pipeline | [PASS] |
+| Flujo de Control de Acceso (Auth Guard) | Verificacion de bloqueo previo a despliegue sin credenciales: sonido de alarma naval, toast descriptivo y apertura forzada de `AuthModal`. | React State Machine & API Client | [PASS] |
 
 ---
 

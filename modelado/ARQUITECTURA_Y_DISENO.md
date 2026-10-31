@@ -219,7 +219,7 @@ flowchart TD
 
 ## 5. Arquitectura Backend Enterprise (Spring Boot 3 & REST API)
 
-El modulo `battleship-server` implementa una arquitectura desacoplada basada en capas de servicios, repositorios reactivos/JPA y seguridad sin estado (stateless) mediante JWT.
+El modulo `battleship-backend` implementa una arquitectura desacoplada basada en capas de servicios, repositorios reactivos/JPA y seguridad sin estado (stateless) mediante JWT.
 
 ```mermaid
 flowchart TD
@@ -344,4 +344,48 @@ erDiagram
 | `GET` | `/v3/api-docs` | Especificacion JSON OpenAPI 3.0 | Publico |
 | `GET` | `/h2-console` | Consola web de administracion de base de datos H2 | Publico (Dev) |
 
+---
+
+## 8. Arquitectura Frontend Web (Next.js 16, React 19, Tailwind CSS)
+
+El modulo `frontend/` implementa una interfaz de usuario reactiva, responsive y de estetica militar retro CRT ("Combat Information Center"), conectada directamente con la API REST del backend mediante JWT.
+
+```mermaid
+flowchart TD
+    subgraph Browser ["Navegador del Usuario (Desktop / Mobile)"]
+        UI["Pagina Principal (page.tsx)"]
+        CRT["Filtro CRT Scanlines & Screen Shake"]
+        AUDIO["Sintetizador Web Audio API (sound.ts)"]
+    end
+
+    subgraph StateMachine ["Maquina de Estados del Cliente"]
+        DEP["Fase DEPLOYMENT (FleetPlacement.tsx)"]
+        COMB["Fase COMBAT (CombatGrid.tsx & TelemetryLog.tsx)"]
+        OVER["Fase GAMEOVER (Resumen de Bajas y Citacion)"]
+    end
+
+    subgraph Modals ["Componentes Modales de Gestion"]
+        AUTH_M["AuthModal.tsx (Login / Registro / Guardia 403)"]
+        LEAD_M["LeaderboardModal.tsx (Admiralty Roll)"]
+    end
+
+    subgraph ApiClient ["Capa de Comunicacion HTTP (api.ts)"]
+        FETCH["Fetch API Wrapper con Bearer Token"]
+        STORAGE["Session / Local Storage (JWT)"]
+    end
+
+    subgraph BackendRestApi ["Backend REST API (battleship-backend)"]
+        SPRING_API["Controladores Spring Boot 3 (:8080)"]
+    end
+
+    UI --> CRT
+    UI --> AUDIO
+    UI --> StateMachine
+    UI --> Modals
+    DEP -->|Valida credenciales & Naves| ApiClient
+    COMB -->|Envio de disparos y telemetria| ApiClient
+    AUTH_M -->|Autenticacion HMAC-SHA256| ApiClient
+    LEAD_M -->|Consulta de records| ApiClient
+    ApiClient --> STORAGE
+    ApiClient -->|Peticiones HTTP JSON| SPRING_API
 ```

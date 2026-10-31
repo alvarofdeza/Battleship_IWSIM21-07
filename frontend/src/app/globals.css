@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+@theme {
+  --font-pixel: var(--font-pixel), monospace;
+  --font-tactical: var(--font-tactical), monospace;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+
+  /* Naval US Navy / CIC Terminal Palette */
+  --color-hull-abyss: #050b14;
+  --color-hull-deck: #0a1322;
+  --color-hull-steel: #101e36;
+  --color-hull-border: #1a2d4f;
+  --color-hull-rivet: #2c4268;
+
+  --color-radar-green: #00ff66;
+  --color-radar-dim: #008836;
+  --color-radar-faint: rgba(0, 255, 102, 0.12);
+
+  --color-combat-red: #ff3344;
+  --color-combat-dim: #991f2a;
+  --color-combat-faint: rgba(255, 51, 68, 0.15);
+
+  --color-sonar-amber: #ffaa00;
+  --color-sonar-dim: #a66f00;
+
+  --color-ocean-cyan: #00e5ff;
+  --color-ocean-deep: #072233;
+
+  --color-steel-text: #8fa5bf;
+  --color-steel-muted: #536780;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background-color: var(--color-hull-abyss);
+  color: #e2ecf7;
+  font-family: var(--font-tactical), monospace;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* CRT Scanlines Overlay */
+.crt-overlay::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 40;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Screen Recoil Shake */
+@keyframes screen-shake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, -1px); }
+  80% { transform: translate(2px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+.shake-hit {
+  animation: screen-shake 0.35s ease-in-out;
+}
+
+/* Radar Sweep Line Animation */
+@keyframes radar-sweep-beam {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.radar-beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 102, 0.8));
+  transform-origin: 0 0;
+  animation: radar-sweep-beam 4s linear infinite;
+  pointer-events: none;
+}
+
+/* Sonar Water Ripple */
+@keyframes sonar-ripple {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: sonar-ripple 0.8s ease-out forwards;
+}
+
+/* Tactical Bevels */
+.bezel-tactical {
+  border-top: 2px solid #233b66;
+  border-left: 2px solid #233b66;
+  border-right: 2px solid #060c18;
+  border-bottom: 2px solid #060c18;
+  background: #0a1322;
+}
+
+.bezel-tactical-inset {
+  border-top: 2px solid #060c18;
+  border-left: 2px solid #060c18;
+  border-right: 2px solid #233b66;
+  border-bottom: 2px solid #233b66;
+  background: #060c18;
+}
+
+.bezel-tactical-btn {
+  border-top: 2px solid #2c4a7f;
+  border-left: 2px solid #2c4a7f;
+  border-right: 2px solid #050b16;
+  border-bottom: 2px solid #050b16;
+  transition: all 0.08s ease-in-out;
+}
+
+.bezel-tactical-btn:hover {
+  background: #152542;
+}
+
+.bezel-tactical-btn:active {
+  border-top: 2px solid #050b16;
+  border-left: 2px solid #050b16;
+  border-right: 2px solid #2c4a7f;
+  border-bottom: 2px solid #2c4a7f;
+  transform: translateY(1px);
+}
+
+/* Tactical Phosphor Glow */
+.glow-radar {
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.7);
+}
+
+.glow-combat {
+  text-shadow: 0 0 8px rgba(255, 51, 68, 0.75);
+}
+
+.glow-amber {
+  text-shadow: 0 0 8px rgba(255, 170, 0, 0.7);
+}
+
+.pixel-art {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Custom Tactical Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060c18;
+}
+::-webkit-scrollbar-thumb {
+  background: #1b2d4f;
+  border: 1px solid #2c4268;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff66;
+}

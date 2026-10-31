@@ -34,5 +34,17 @@ Thumbs.db
 *.class
 **/*.class
 
+# Node & Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+.vercel/
+**/.vercel/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
 # IDE-specific files (optional)
 .vscode/
