@@ -233,7 +233,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(changeReq)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation Failed"))
-                .andExpect(jsonPath("$.details.newPassword").value("New password must be at least 6 characters long"));
+                .andExpect(jsonPath("$.details.newPassword").value("New password must be between 6 and 50 characters"));
     }
 
     @Test
@@ -338,5 +338,56 @@ class AuthControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(resendReq)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Registro y login normalizan mayusculas y espacios en blanco en el email")
+    void testRegisterAndLoginNormalizeEmailAndWhitespace() throws Exception {
+        RegisterRequest regReq = new RegisterRequest("cadettrim", "  CadetTrim@Battleship.COM  ", "password123");
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("cadettrim@battleship.com"));
+
+        // Login con mayusculas y espacios
+        LoginRequest loginReq = new LoginRequest("  CADETTRIM@BATTLESHIP.COM  ", "password123");
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("cadettrim"));
+    }
+
+    @Test
+    @DisplayName("Bloqueo de seguridad tras 5 intentos fallidos de verificacion OTP (Anti-Brute Force)")
+    void testOtpBruteForceLockoutAfterFiveAttempts() throws Exception {
+        RegisterRequest regReq = new RegisterRequest("cadetlockout", "cadetlockout@battleship.com", "password123");
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated());
+
+        // Realizar 4 intentos fallidos
+        for (int i = 1; i <= 4; i++) {
+            VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadetlockout", "00000" + i);
+            mockMvc.perform(post("/api/v1/auth/verify-email")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(verifyReq)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Attempts remaining")));
+        }
+
+        // 5to intento fallido: Bloqueo e invalidacion del OTP
+        VerifyEmailRequest verifyReqFifth = new VerifyEmailRequest("cadetlockout", "999999");
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyReqFifth)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Maximum verification attempts exceeded. Please request a new code."));
+
+        // Comprobar que en base de datos el OTP fue revocado
+        UserEntity user = userRepository.findByUsername("cadetlockout").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertNull(user.getVerificationOtp());
     }
 }

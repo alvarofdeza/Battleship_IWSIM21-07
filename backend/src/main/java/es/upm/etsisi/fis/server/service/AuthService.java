@@ -74,24 +74,28 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username '" + request.getUsername() + "' is already taken.");
+        String cleanUsername = request.getUsername().trim();
+        String cleanEmail = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByUsername(cleanUsername)) {
+            throw new IllegalArgumentException("Username '" + cleanUsername + "' is already taken.");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email '" + request.getEmail() + "' is already registered.");
+        if (userRepository.existsByEmail(cleanEmail)) {
+            throw new IllegalArgumentException("Email '" + cleanEmail + "' is already registered.");
         }
 
         String otp = String.format("%06d", secureRandom.nextInt(1000000));
 
         UserEntity user = new UserEntity(
-                request.getUsername(),
-                request.getEmail(),
+                cleanUsername,
+                cleanEmail,
                 passwordEncoder.encode(request.getPassword()),
                 UserRole.ROLE_USER
         );
         user.setEmailVerified(false);
         user.setVerificationOtp(otp);
         user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
+        user.setOtpAttempts(0);
         userRepository.save(user);
 
         // Enviar codigo OTP militar a traves de la API de Resend
@@ -107,11 +111,14 @@ public class AuthService {
         return new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name(), false);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
     public AuthResponse verifyEmail(VerifyEmailRequest request) {
-        UserEntity user = userRepository.findByUsername(request.getIdentifier())
-                .or(() -> userRepository.findByEmail(request.getIdentifier()))
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with identifier: " + request.getIdentifier()));
+        String identifier = request.getIdentifier().trim();
+        String identifierLower = identifier.toLowerCase();
+
+        UserEntity user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifierLower))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with identifier: " + identifier));
 
         if (user.isEmailVerified()) {
             throw new IllegalArgumentException("Email is already verified.");
@@ -122,12 +129,22 @@ public class AuthService {
         }
 
         if (user.getVerificationOtp() == null || !user.getVerificationOtp().equals(request.getCode().trim())) {
-            throw new IllegalArgumentException("Invalid verification code.");
+            int newAttempts = user.getOtpAttempts() + 1;
+            user.setOtpAttempts(newAttempts);
+            if (newAttempts >= 5) {
+                user.setVerificationOtp(null);
+                user.setOtpExpiresAt(null);
+                userRepository.save(user);
+                throw new IllegalArgumentException("Maximum verification attempts exceeded. Please request a new code.");
+            }
+            userRepository.save(user);
+            throw new IllegalArgumentException("Invalid verification code. Attempts remaining: " + (5 - newAttempts));
         }
 
         user.setEmailVerified(true);
         user.setVerificationOtp(null);
         user.setOtpExpiresAt(null);
+        user.setOtpAttempts(0);
         userRepository.save(user);
 
         UserDetails userDetails = new User(
@@ -142,9 +159,12 @@ public class AuthService {
 
     @Transactional
     public void resendVerificationCode(ResendOtpRequest request) {
-        UserEntity user = userRepository.findByUsername(request.getIdentifier())
-                .or(() -> userRepository.findByEmail(request.getIdentifier()))
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with identifier: " + request.getIdentifier()));
+        String identifier = request.getIdentifier().trim();
+        String identifierLower = identifier.toLowerCase();
+
+        UserEntity user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifierLower))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with identifier: " + identifier));
 
         if (user.isEmailVerified()) {
             throw new IllegalArgumentException("Email is already verified.");
@@ -153,14 +173,16 @@ public class AuthService {
         String otp = String.format("%06d", secureRandom.nextInt(1000000));
         user.setVerificationOtp(otp);
         user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
+        user.setOtpAttempts(0);
         userRepository.save(user);
 
         emailService.sendVerificationCode(user.getEmail(), user.getUsername(), otp);
     }
 
     public AuthResponse login(LoginRequest request) {
-        // Autenticacion exclusiva mediante correo electronico
-        UserEntity user = userRepository.findByEmail(request.getEmail().trim())
+        // Autenticacion exclusiva mediante correo electronico normalizado
+        String cleanEmail = request.getEmail().trim().toLowerCase();
+        UserEntity user = userRepository.findByEmail(cleanEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
 
         authenticationManager.authenticate(

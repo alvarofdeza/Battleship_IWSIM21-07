@@ -336,7 +336,7 @@ public class GameService {
             throw new IllegalStateException("Game is still in progress. Complete the battle before claiming points.");
         }
 
-        if (metadata.isClaimed()) {
+        if (metadata.isClaimed() || leaderboardScoreRepository.existsByGameId(gameId)) {
             throw new IllegalStateException("Game " + gameId + " has already been claimed.");
         }
 

@@ -23,6 +23,8 @@ public interface LeaderboardScoreRepository extends JpaRepository<LeaderboardSco
 
     List<LeaderboardScoreEntity> findTop10ByOrderByPointsDesc();
 
+    boolean existsByGameId(String gameId);
+
     @Query("SELECT s FROM LeaderboardScoreEntity s ORDER BY s.points DESC")
     List<LeaderboardScoreEntity> findGlobalTopScores();
 

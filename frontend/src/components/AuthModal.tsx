@@ -43,6 +43,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [resending, setResending] = useState(false);
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Cerrar modal al presionar Escape
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleOtpChange = (index: number, value: string) => {
@@ -80,10 +92,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     sounds.playClick();
     setLoading(true);
 
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
     try {
       if (isRegister) {
-        if (!email.includes('@')) {
+        if (!cleanEmail.includes('@')) {
           toast.error('VALID EMAIL REQUIRED FOR NAVAL DISPATCH');
+          setLoading(false);
+          return;
+        }
+        if (cleanUsername.length < 3) {
+          toast.error('CALLSIGN MUST BE AT LEAST 3 CHARACTERS');
           setLoading(false);
           return;
         }
@@ -92,17 +112,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setLoading(false);
           return;
         }
-        await api.register(username, email, password);
+        await api.register(cleanUsername, cleanEmail, password);
         sounds.playSonarPing();
-        toast.success(`MILITARY PIN TRANSMITTED TO ${email.toUpperCase()}`);
+        toast.success(`MILITARY PIN TRANSMITTED TO ${cleanEmail.toUpperCase()}`);
         setIsVerifying(true);
       } else {
-        if (!email.includes('@')) {
+        if (!cleanEmail.includes('@')) {
           toast.error('VALID EMAIL REQUIRED FOR SIGN IN');
           setLoading(false);
           return;
         }
-        const res = await api.login(email, password);
+        const res = await api.login(cleanEmail, password);
         toast.success(`CLEARANCE ACCEPTED // WELCOME BACK, ${res.username.toUpperCase()}`);
         onSuccess({
           username: res.username,

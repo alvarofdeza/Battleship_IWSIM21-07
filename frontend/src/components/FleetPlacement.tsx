@@ -43,6 +43,18 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
   // Control de atajos de teclado (R o barra espaciadora para rotacion)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar el atajo si el foco se encuentra en un campo de texto o elemento editable
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
       if (e.key === 'r' || e.key === 'R' || e.key === ' ') {
         e.preventDefault();
         setHorizontal((prev) => !prev);

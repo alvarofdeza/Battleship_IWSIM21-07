@@ -26,8 +26,8 @@ public class RegisterRequest {
     public RegisterRequest() {}
 
     public RegisterRequest(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
+        this.username = username != null ? username.trim() : null;
+        this.email = email != null ? email.trim().toLowerCase() : null;
         this.password = password;
     }
 
@@ -36,7 +36,7 @@ public class RegisterRequest {
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.username = username != null ? username.trim() : null;
     }
 
     public String getEmail() {
@@ -44,7 +44,7 @@ public class RegisterRequest {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = email != null ? email.trim().toLowerCase() : null;
     }
 
     public String getPassword() {

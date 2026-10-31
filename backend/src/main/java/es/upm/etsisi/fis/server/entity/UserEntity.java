@@ -36,6 +36,9 @@ public class UserEntity {
     @Column(name = "otp_expires_at")
     private LocalDateTime otpExpiresAt;
 
+    @Column(name = "otp_attempts")
+    private int otpAttempts;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -111,6 +114,14 @@ public class UserEntity {
 
     public void setOtpExpiresAt(LocalDateTime otpExpiresAt) {
         this.otpExpiresAt = otpExpiresAt;
+    }
+
+    public int getOtpAttempts() {
+        return otpAttempts;
+    }
+
+    public void setOtpAttempts(int otpAttempts) {
+        this.otpAttempts = otpAttempts;
     }
 
     public LocalDateTime getCreatedAt() {
