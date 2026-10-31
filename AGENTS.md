@@ -44,7 +44,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 8. **Auditoria Continua de Casos Limite, Resiliencia y Blindaje de Ciberseguridad (Defensive Engineering):**
    * En cada iteracion o modificacion de codigo, el agente debe anticipar y buscar proactivamente casos limite (edge cases), condiciones de carrera, entradas malformadas, colisiones de eventos de teclado/UI y posibles vectores de vulnerabilidad (OWASP Top 10, CWE).
-   * **Tolerancia Cero a la Exposicion de Secretos:** Queda terminantemente prohibido exponer, hardcodear o subir al repositorio claves de API (como Resend API keys), secretos JWT, credenciales de base de datos o cadenas de conexion con contrasenas reales. Todo secreto debe residir exclusivamente en variables de entorno o archivos `.env` ignorados por `.gitignore`.
+   * **Tolerancia Cero a la Exposicion de Secretos:** Queda terminantemente prohibido exponer, hardcodear o subir al repositorio claves de API, secretos JWT, credenciales de base de datos, credenciales SMTP o cadenas de conexion con contrasenas reales. Todo secreto debe residir exclusivamente en variables de entorno o archivos `.env` ignorados por `.gitignore`.
    * Se deben auditar y mitigar activamente: ataques de fuerza bruta en codigos de verificacion (bloqueo transaccional por umbral de intentos fallidos), vectores de denegacion de servicio algoritmico (DoS por hashing de contrasenas infinitas limitando longitudes maximas a 50 caracteres), inyecciones XSS / SQL mediante validacion estricta de esquemas (`@Pattern`, `@Size`), manipulacion de tokens y duplicidades transaccionales (proteccion contra replay en reclamaciones de partidas mediante comprobaciones en BD y memoria).
    * Ninguna excepcion no controlada debe fugarse al cliente; todas las anomalias deben ser interceptadas y estandarizadas en manejadores globales con codigos HTTP y mensajes semanticos controlados.
    * Toda nueva restriccion o blindaje debe contar obligatoriamente con su correspondiente test automatizado de integracion o unidad.
@@ -64,7 +64,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 ---
 
 ### [EN CURSO] Hito 5: Gamificacion Tactica, Doble Ranking, Modo Invitado, Verificacion OTP y Perfil de Oficial
-*Objetivo:* Refinar la experiencia de usuario, permitir juego inmediato sin barreras de entrada (Modo Invitado con reclamacion post-combate), verificacion de correo mediante codigo PIN de 6 digitos (API Resend), sistema de puntuacion multidimensional (victoria y consolacion en derrota) y doble ranking en Admiralty Roll con perfil de oficial.
+*Objetivo:* Refinar la experiencia de usuario, permitir juego inmediato sin barreras de entrada (Modo Invitado con reclamacion post-combate), verificacion de correo mediante codigo PIN de 6 digitos, sistema de puntuacion multidimensional (victoria y consolacion en derrota) y doble ranking en Admiralty Roll con perfil de oficial.
 
 - [x] **Fase 1: Motor de Puntuacion Multidimensional y Endpoints de Doble Ranking en Backend:**
   - [x] Implementacion de la formula de victoria: `((1000 + bonus_shots) * mult_diff) + bonus_time`.
@@ -86,8 +86,8 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
   - [x] Pantalla de fin de partida militar con desglose de puntos y boton de reclamacion: *"Reclamar Puntos e Inscribirse"*.
   - [x] Endpoint `POST /api/v1/games/{id}/claim` para transferir la partida jugada como invitado a la cuenta del usuario tras login o registro.
 
-- [x] **Fase 3: Verificacion de Correo con Codigo OTP de 6 Digitos (Resend API):**
-  - [x] Integracion con la API de Resend para envio de correos transaccionales con plantilla tactica naval y mock offline para dev/CI.
+- [x] **Fase 3: Verificacion de Correo con Codigo OTP de 6 Digitos:**
+  - [x] Servicio transaccional para envio de correos con plantilla tactica naval y mock offline para dev/CI.
   - [x] Generacion y validacion de codigos OTP de 6 digitos con expiracion a los 10 minutos.
   - [x] Campos `email_verified`, `verification_otp` y `otp_expires_at` en `UserEntity` y endpoint `POST /api/v1/auth/verify-email`.
   - [x] Componente modal en el frontend con 6 casillas para introduccion del codigo PIN militar.

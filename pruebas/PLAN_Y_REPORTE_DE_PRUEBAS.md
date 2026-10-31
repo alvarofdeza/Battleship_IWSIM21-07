@@ -74,7 +74,7 @@ Este documento consolida la documentacion de pruebas de caja blanca y caja negra
 | Verificacion de Tipos TypeScript | Comprobacion estricta sin errores de tipado (`noImplicitAny`, interfaces de dominio, DTOs de API enriquecidos con puntuacion y ranking). | TypeScript Compiler (`tsc`) | [PASS] |
 | Build de Produccion Next.js | Compilacion de rutas estaticas, empaquetado de componentes React 19 y optimizacion Turbopack sin advertencias. | Next.js Build Pipeline | [PASS] |
 | Modo Invitado & Reclamacion Post-Combate | Inicio inmediato de combate sin barrera de login; calculo de puntuacion en pantalla final con desglose y modal de reclamacion vinculado a registro/login. | React State Machine & API Client | [PASS] |
-| Verificacion OTP de 6 Digitos | Componente de 6 cajas de entrada militar con navegacion automatica de cursor, pegado directo de codigo PIN y llamada a Resend API. | Componente `AuthModal.tsx` | [PASS] |
+| Verificacion OTP de 6 Digitos | Componente de 6 cajas de entrada militar con navegacion automatica de cursor, pegado directo de codigo PIN y llamada a servicio de verificacion. | Componente `AuthModal.tsx` | [PASS] |
 | Expediente de Oficial (Profile) | Despliegue de modal de oficial con rango militar segun puntos de carrera, resumen de victorias/derrotas, Top 10 personal, ultimas 10 batallas y formulario de cambio de credencial. | Componente `ProfileModal.tsx` | [PASS] |
 
 ---

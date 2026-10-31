@@ -46,7 +46,7 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
   * Puntos de consolacion de honor en derrotas completas calculados por barcos enemigos hundidos antes de caer, con proteccion estricta frente a abandonos.
 * **Seguridad Moderna, Modo Invitado y Verificacion OTP:**
   * Modo Invitado sin barreras de entrada con opcion de reclamar y persistir la puntuacion al finalizar el combate.
-  * Verificacion de correo electronico mediante codigo PIN militar de 6 digitos entregado en bandeja de entrada a traves de la API de Resend.
+  * Verificacion de correo electronico mediante codigo PIN militar de 6 digitos entregado en bandeja de entrada a traves de servicio de correo transaccional.
   * Seguridad stateless basada en tokens Bearer JWT (JJWT 0.12.5) y contraseñas hasheadas con BCrypt.
 * **Documentacion Interactiva OpenAPI 3 / Swagger UI & Health Check:**
   * Especificacion viva disponible en tiempo real en `/swagger-ui.html` con soporte Bearer Token.
@@ -75,7 +75,7 @@ Implementacion full-stack modular del clasico juego de combate naval Hundir la F
 * **Frontend Web:** Next.js 16.4 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide Icons, Sonner, Canvas Confetti
 * **Audio y FX:** Web Audio API (sintetizador oscilador nativo sin assets externos)
 * **Documentacion API:** SpringDoc OpenAPI 2.5.0 / Swagger UI 5.13.0
-* **Seguridad & Tokens:** JJWT 0.12.5, BCrypt, Resend API (Emails transaccionales de verificacion OTP)
+* **Seguridad & Tokens:** JJWT 0.12.5, BCrypt, Emails transaccionales de verificacion OTP
 * **Bases de Datos:** H2 Database (desarrollo y testing en memoria), PostgreSQL (configurado para produccion)
 * **Build & Dependency Management:** Apache Maven Wrapper (`mvnw` / `mvnw.cmd`), npm
 * **Testing:** JUnit 5 Jupiter 5.10.2, MockMvc, Mockito 5.11, AssertJ 3.25
@@ -205,8 +205,6 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
    * `SPRING_PROFILES_ACTIVE`: `prod`
    * `SPRING_DATASOURCE_URL`: *(Cadena de conexion copiada de Neon)*
    * `JWT_SECRET`: *(Cadena secreta aleatoria de al menos 64 caracteres en hexadecimal, o la definida en `.env.example`)*
-   * `RESEND_API_KEY`: *(Clave de API de Resend para envio de codigos PIN de verificacion OTP en produccion)*
-   * `RESEND_FROM_EMAIL`: `onboarding@resend.dev` (o remitente de dominio verificado)
 4. Pulsa **Create Web Service**. Render compila la imagen multi-stage y publica la URL HTTPS: `https://battleship-backend-ys61.onrender.com`.
 5. **Configuracion de Keep-Alive y Gestion de Cuota (750h/mes):**
    * Render Free proporciona 750 horas de computo al mes compartidas entre todos los servicios de la cuenta. Un servicio 24/7 consume ~744 horas.

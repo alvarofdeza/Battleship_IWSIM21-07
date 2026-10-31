@@ -22,7 +22,7 @@ interface AuthModalProps {
 }
 
 /**
- * Modal tactico de autenticacion militar con verificacion OTP de 6 digitos (Resend API)
+ * Modal tactico de autenticacion militar con verificacion OTP de 6 digitos
  * y gestion de credenciales sin bypass docente.
  */
 export const AuthModal: React.FC<AuthModalProps> = ({

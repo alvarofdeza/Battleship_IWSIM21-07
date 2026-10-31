@@ -102,7 +102,7 @@ public class AuthService {
         user.setOtpAttempts(0);
         userRepository.save(user);
 
-        // Enviar codigo OTP militar a traves de la API de Resend
+        // Enviar codigo OTP militar a traves del servicio de correo
         emailService.sendVerificationCode(user.getEmail(), user.getUsername(), otp);
 
         UserDetails userDetails = new User(
