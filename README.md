@@ -238,20 +238,12 @@ Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red
 ## 7. Pipeline de Integracion Continua (GitHub Actions)
 
 El archivo `.github/workflows/ci.yml` ejecuta una suite automatizada de verificacion de calidad en cada `push` o `pull request` dirigido a la rama `main`:
-* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 101 tests unitarios y de integracion (`BUILD SUCCESS`).
+* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 180 tests unitarios y de integracion (`BUILD SUCCESS`).
 * **Job Frontend:** Descarga Node 20, verifica tipos estricto con TypeScript (`tsc --noEmit`) y compila la aplicacion Next.js con Turbopack.
 
 ---
 
-## 8. Cuentas de Acceso y Benchmarks de Referencia
+## 8. Acceso al Sistema y Modo Invitado
 
-La plataforma permite el juego inmediato sin barreras de entrada mediante el **Modo Invitado**, ofreciendo la opcion de reclamar los puntos acumulados al concluir la batalla mediante registro con correo o inicio de sesion.
-
-Para tareas de administracion, pruebas automatizadas y marcas historicas de referencia (benchmark), existen las siguientes cuentas en el sistema:
-
-| Usuario | Email | Rol | Descripcion |
-| :--- | :--- | :--- | :--- |
-| `alvaro` | `alvaro@alumnos.upm.es` | `ROLE_USER` | Record de honor inicial de referencia (2.150 pts en dificultad Hard). |
-| `admin` | `admin@upm.es` | `ROLE_ADMIN` | Administrador de plataforma y gestion global. |
-| `adrian` | `adrian@alumnos.upm.es` | `ROLE_USER` | Usuario estandar de pruebas internas. |
+La plataforma permite el juego inmediato sin barreras de entrada mediante el **Modo Invitado**, ofreciendo la opcion de reclamar los puntos acumulados al concluir la batalla mediante registro con correo o inicio de sesion con verificacion de correo mediante codigo OTP.
 
