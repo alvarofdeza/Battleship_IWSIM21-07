@@ -23,8 +23,17 @@ const tacticalFont = Share_Tech_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://fleetgrid.me'),
   title: {
-    default: 'FleetGrid // Tactical Naval Warfare Platform',
+    default: 'FleetGrid',
     template: '%s | FleetGrid',
+  },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
   },
   description:
     'Retro tactical naval warfare simulation. Engage Monte Carlo Probability Density AI, track your battle telemetry, and compete on the global Admiralty Roll.',
@@ -49,7 +58,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://fleetgrid.me',
     siteName: 'FleetGrid',
-    title: 'FleetGrid // Tactical Naval Warfare Platform',
+    title: 'FleetGrid',
     description:
       'Retro tactical naval warfare simulation with Monte Carlo Probability Density AI and live Admiralty Roll.',
     images: [
@@ -63,7 +72,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FleetGrid // Tactical Naval Warfare Platform',
+    title: 'FleetGrid',
     description:
       'Retro tactical naval warfare simulation with Monte Carlo Probability Density AI and live Admiralty Roll.',
     images: ['/twitter-image'],
@@ -78,10 +87,6 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
-  },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico',
   },
 };
 
