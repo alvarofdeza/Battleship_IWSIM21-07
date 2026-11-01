@@ -1,4 +1,4 @@
-# Maven
+# Maven & JVM
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -9,45 +9,102 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+*.dump
+*.dumpstream
 
-# IntelliJ IDEA
+# IntelliJ IDEA & Editors
 .idea/
 *.iws
 *.iml
 *.ipr
 out/
+.vscode/
+*.sublime-project
+*.sublime-workspace
 
-# Logs
+# Eclipse & NetBeans
+.project
+.classpath
+.settings/
+bin/
+nbproject/
+nbproject/private/
+nbbuild/
+nbdist/
+
+# Text editor backups & swap files
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Logs & Debug
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
 
 # Embedded Databases
 *.mv.db
 *.trace.db
 **/*.mv.db
 **/*.trace.db
+*.sqlite
+*.sqlite3
+*.db
 
 # Compiled binaries
 *.class
 **/*.class
+*.jar
+*.war
 
 # Node & Next.js
 node_modules/
 **/node_modules/
 .next/
 **/.next/
+.turbo/
+**/.turbo/
 .vercel/
 **/.vercel/
+.npm/
+.pnpm-store/
 out/
 build/
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE-specific files (optional)
-.vscode/
+# Code Coverage & Testing
+coverage/
+.nyc_output/
+jacoco.exec
+jacoco/
+
+# AI Assistants & LLM Tooling
+.agents/
+.gemini/
+.claude/
+repomix-output.*
+repomix-output/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Environment files and secrets
 .env
@@ -56,3 +113,7 @@ next-env.d.ts
 .env.test
 .env.production
 !.env.example
+*.pem
+*.key
+*.p12
+*.jks
