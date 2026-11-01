@@ -69,6 +69,7 @@ describe('AuthModal Component', () => {
     const { api } = await import('@/lib/api');
     vi.mocked(api.register).mockResolvedValue({
       token: 'jwt-mock',
+      type: 'Bearer',
       username: 'cadet01',
       email: 'cadet01@fleetgrid.me',
       role: 'ROLE_USER',

@@ -163,7 +163,7 @@ test.describe('FleetGrid Tactical Naval Command - Critical User Journeys', () =>
 
     // Conmutar a Nueva Comision (Registro)
     await page.getByRole('button', { name: /NEW COMMISSION/i }).click();
-    await expect(page.getByPlaceholderText('e.g. ghost_01, alpha-7')).toBeVisible();
+    await expect(page.getByPlaceholder('e.g. ghost_01, alpha-7')).toBeVisible();
 
     // Conmutar a Recuperacion de Credenciales
     await page.getByRole('button', { name: /OFFICER SIGN IN/i }).click();
