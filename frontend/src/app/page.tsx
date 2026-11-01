@@ -23,6 +23,7 @@ import { CombatGrid } from '@/components/CombatGrid';
 import { TelemetryLog } from '@/components/TelemetryLog';
 import { LeaderboardModal } from '@/components/LeaderboardModal';
 import { ProfileModal } from '@/components/ProfileModal';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
@@ -65,6 +66,9 @@ export default function Home() {
   const [isVictory, setIsVictory] = useState<boolean>(false);
   const [isClaimed, setIsClaimed] = useState<boolean>(false);
   const [isClaiming, setIsClaiming] = useState<boolean>(false);
+
+  // Region en vivo accesible para lectores de pantalla
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
 
   // Pestana activa en dispositivos moviles: Ataque o Defensa
   const [mobileTab, setMobileTab] = useState<'ATTACK' | 'DEFENSE'>('ATTACK');
@@ -158,17 +162,21 @@ export default function Home() {
     try {
       const shot = await api.fireShot(game.gameId, row, col);
 
-      // Evaluar sonido y efectos visuales segun el impacto
+      // Evaluar sonido, anuncios de accesibilidad y efectos visuales segun el impacto
+      const targetCoord = `${String.fromCharCode(65 + row)}-${col + 1}`;
       if (shot.playerShotResult === 'Hit') {
         sounds.playExplosion();
         triggerShake();
-        toast.error(`DIRECT HIT ON ENEMY VESSEL AT [${String.fromCharCode(65 + row)}-${col + 1}]!`);
+        setLiveAnnouncement(`Direct hit on enemy vessel at sector ${targetCoord}!`);
+        toast.error(`DIRECT HIT ON ENEMY VESSEL AT [${targetCoord}]!`);
       } else if (shot.playerShotResult === 'Sunk') {
         sounds.playShipSunkAlarm();
         triggerShake();
+        setLiveAnnouncement(`Confirmed: enemy vessel sunk by strike at sector ${targetCoord}!`);
         toast.error('CONFIRMED: ENEMY VESSEL SUNK BY PRECISION STRIKE!');
       } else {
         sounds.playWaterSplash();
+        setLiveAnnouncement(`Artillery missed, splash in water at sector ${targetCoord}.`);
       }
 
       // Actualizar estado del juego e historial
@@ -264,7 +272,7 @@ export default function Home() {
   /**
    * Restablece el teatro de operaciones al fondeadero para un nuevo despliegue de flota.
    */
-  const handleResetToDeployment = () => {
+  const handleResetToDeployment = useCallback(() => {
     sounds.playClick();
     setPhase('DEPLOYMENT');
     setGame(null);
@@ -272,7 +280,9 @@ export default function Home() {
     setLastAttack(null);
     setFinalPoints(null);
     setIsClaimed(false);
-  };
+  }, []);
+
+  const gameOverRef = useFocusTrap<HTMLDivElement>(phase === 'GAMEOVER', handleResetToDeployment);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -301,6 +311,11 @@ export default function Home() {
 
       {/* Teatro de mando principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 flex flex-col">
+        {/* Region en vivo accesible para lectores de pantalla */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {liveAnnouncement}
+        </div>
+
         {/* Fase 1: Fondeadero y despliegue tactico de flota */}
         {phase === 'DEPLOYMENT' && (
           <FleetPlacement
@@ -441,7 +456,13 @@ export default function Home() {
         {/* Phase 3: Game Over Modal Overlay with Scoring Breakdown & Score Claiming */}
         {phase === 'GAMEOVER' && game && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
-            <div className="w-full max-w-lg bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 text-center space-y-4 shadow-2xl">
+            <div
+              ref={gameOverRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="game-over-title"
+              className="w-full max-w-lg bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 text-center space-y-4 shadow-2xl relative"
+            >
               <div
                 className={`w-16 h-16 mx-auto border-2 flex items-center justify-center rounded-full bg-[#050b14] ${
                   isVictory ? 'border-[#00ff66]' : 'border-[#ff3344]'
@@ -451,6 +472,7 @@ export default function Home() {
               </div>
 
               <h2
+                id="game-over-title"
                 className={`font-['Press_Start_2P'] text-sm tracking-wider ${
                   isVictory ? 'text-[#00ff66] glow-radar' : 'text-[#ff3344] glow-combat'
                 }`}

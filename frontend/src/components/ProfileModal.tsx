@@ -15,6 +15,7 @@ import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
 import { toast } from 'sonner';
 import { MatchScoreItem, UserProfile, UserStats } from '@/lib/types';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 /**
  * Propiedades para el modal del expediente militar del oficial.
@@ -36,6 +37,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
   const [bestMatches, setBestMatches] = useState<MatchScoreItem[]>([]);
   const [recentMatches, setRecentMatches] = useState<MatchScoreItem[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   // Formulario de cambio de contrasena
   const [currentPassword, setCurrentPassword] = useState('');
@@ -131,14 +134,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-      <div className="w-full max-w-3xl bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 relative shadow-2xl text-left max-h-[90vh] overflow-y-auto">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-modal-title"
+        className="w-full max-w-3xl bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 relative shadow-2xl text-left max-h-[90vh] overflow-y-auto"
+      >
         {/* Close Button */}
         <button
           onClick={() => {
             sounds.playClick();
             onClose();
           }}
-          className="absolute top-4 right-4 text-[#8fa5bf] hover:text-[#ff3344] transition-colors"
+          className="absolute top-4 right-4 text-[#8fa5bf] hover:text-[#ff3344] transition-colors p-1"
+          aria-label="Close officer dossier"
         >
           <X className="w-5 h-5" />
         </button>
@@ -146,12 +156,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
         {/* Officer Dossier Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1a2d4f] mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 border-2 border-[#38bdf8] bg-[#050b14] flex items-center justify-center">
+            <div className="w-12 h-12 border-2 border-[#38bdf8] bg-[#050b14] flex items-center justify-center shrink-0">
               <Shield className="w-7 h-7 text-[#38bdf8]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-['Press_Start_2P'] text-xs text-white uppercase tracking-wider">
+                <h2 id="profile-modal-title" className="font-['Press_Start_2P'] text-xs text-white uppercase tracking-wider">
                   {user.username}
                 </h2>
                 <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/40 rounded flex items-center gap-1">

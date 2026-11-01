@@ -5,6 +5,7 @@ import { X, Trophy, Medal, Award, RefreshCw, Users, Swords, Shield } from 'lucid
 import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
 import { MatchScoreItem, PlayerRankingItem } from '@/lib/types';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 /**
  * Propiedades del cuadro modal de clasificaciones navales y records.
@@ -26,6 +27,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
   const [topMatches, setTopMatches] = useState<MatchScoreItem[]>([]);
   const [topOfficers, setTopOfficers] = useState<PlayerRankingItem[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -109,14 +112,21 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-5 relative shadow-2xl text-left">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="leaderboard-modal-title"
+        className="w-full max-w-2xl bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-5 relative shadow-2xl text-left"
+      >
         {/* Close Button */}
         <button
           onClick={() => {
             sounds.playClick();
             onClose();
           }}
-          className="absolute top-4 right-4 text-[#8fa5bf] hover:text-[#ff3344] transition-colors"
+          className="absolute top-4 right-4 text-[#8fa5bf] hover:text-[#ff3344] transition-colors p-1"
+          aria-label="Close Admiralty honor roll modal"
         >
           <X className="w-5 h-5" />
         </button>
@@ -124,7 +134,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         {/* Title */}
         <div className="flex items-center gap-2 mb-2 text-[#ffaa00]">
           <Trophy className="w-5 h-5" />
-          <h2 className="font-['Press_Start_2P'] text-xs tracking-wider glow-amber">
+          <h2 id="leaderboard-modal-title" className="font-['Press_Start_2P'] text-xs tracking-wider glow-amber">
             ADMIRALTY HONOR ROLL &bull; DUAL ESCALAFON
           </h2>
         </div>

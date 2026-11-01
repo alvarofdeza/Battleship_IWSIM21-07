@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Lock, Key, Mail, ShieldAlert, CheckCircle2, RotateCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
 import { toast } from 'sonner';
 import { UserProfile } from '@/lib/types';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 /**
  * Propiedades de configuracion para el modal de autorizacion de mando.
@@ -41,28 +42,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Cerrar modal al presionar Escape
-  React.useEffect(() => {
-    if (!isOpen) return;
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isOpen, onClose]);
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+
+  // Temporizador regresivo para reenvio de PIN militar
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   if (!isOpen) return null;
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const raw = e.clipboardData.getData('text');
+    const cleanNumbers = raw.replace(/[^0-9]/g, '').slice(0, 6);
+    if (!cleanNumbers) return;
+
+    const newDigits = ['', '', '', '', '', ''];
+    for (let i = 0; i < cleanNumbers.length; i++) {
+      newDigits[i] = cleanNumbers[i];
+    }
+    setOtpDigits(newDigits);
+    const targetFocus = Math.min(cleanNumbers.length, 5);
+    digitRefs.current[targetFocus]?.focus();
+  };
 
   const handleOtpChange = (index: number, value: string) => {
     const cleanVal = value.replace(/[^0-9]/g, '');
     const newDigits = [...otpDigits];
 
     if (cleanVal.length > 1) {
-      // Manejo de pegado (Paste) de 6 digitos
       const pasted = cleanVal.slice(0, 6).split('');
       for (let i = 0; i < 6; i++) {
         newDigits[i] = pasted[i] || '';
@@ -84,6 +99,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
       digitRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      digitRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      e.preventDefault();
+      digitRefs.current[index + 1]?.focus();
     }
   };
 
@@ -116,6 +137,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         sounds.playSonarPing();
         toast.success(`MILITARY PIN TRANSMITTED TO ${cleanEmail.toUpperCase()}`);
         setIsVerifying(true);
+        setResendCooldown(60);
       } else {
         if (!cleanEmail.includes('@')) {
           toast.error('VALID EMAIL REQUIRED FOR SIGN IN');
@@ -177,6 +199,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setResending(true);
     try {
       await api.resendCode(email || username);
+      setResendCooldown(60);
       toast.success('NEW 6-DIGIT ACCESS PIN TRANSMITTED');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'FAILED TO RESEND PIN';
@@ -188,22 +211,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 relative shadow-2xl text-left">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        className="w-full max-w-md bg-[#0a1322] border-2 border-[#1a2d4f] bezel-tactical p-6 relative shadow-2xl text-left"
+      >
         {/* Close Button */}
         <button
           onClick={() => {
             sounds.playClick();
             onClose();
           }}
-          className="absolute top-4 right-4 text-[#8fa5bf] hover:text-[#ff3344] transition-colors"
+          className="absolute top-4 right-4 text-[#8fa5bf] hover:text-[#ff3344] transition-colors p-1"
+          aria-label="Close naval clearance modal"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Title */}
         <div className="flex items-center gap-2 mb-2 text-[#00ff66]">
-          <ShieldAlert className="w-5 h-5" />
-          <span className="font-['Press_Start_2P'] text-[11px] tracking-wider glow-radar">
+          <ShieldAlert className="w-5 h-5 shrink-0" />
+          <span id="auth-modal-title" className="font-['Press_Start_2P'] text-[11px] tracking-wider glow-radar">
             {isVerifying ? 'SECURITY OTP VERIFICATION' : 'NAVAL SECURITY CLEARANCE'}
           </span>
         </div>
@@ -221,7 +251,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <label className="block text-xs font-mono text-[#00ff66] mb-3 uppercase tracking-wider text-center">
                 [ 6-DIGIT MILITARY PIN ]
               </label>
-              <div className="flex justify-between gap-2 max-w-xs mx-auto">
+              <div className="flex justify-between gap-1.5 sm:gap-2 max-w-xs mx-auto">
                 {otpDigits.map((digit, idx) => (
                   <input
                     key={idx}
@@ -232,10 +262,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     inputMode="numeric"
                     maxLength={1}
                     value={digit}
+                    onPaste={handlePaste}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
-                    className="w-11 h-12 text-center text-xl font-bold font-mono bg-[#050b14] border-2 border-[#1a2d4f] focus:border-[#00ff66] text-[#00ff66] focus:outline-none transition-colors"
+                    className="w-10 sm:w-11 h-12 text-center text-xl font-bold font-mono bg-[#050b14] border-2 border-[#1a2d4f] focus:border-[#00ff66] text-[#00ff66] focus:outline-none transition-colors"
                     autoFocus={idx === 0}
+                    aria-label={`Digit ${idx + 1} of 6`}
                   />
                 ))}
               </div>
@@ -254,11 +286,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="button"
                 onClick={handleResendOtp}
-                disabled={resending}
-                className="text-[#ffaa00] hover:underline flex items-center gap-1"
+                disabled={resending || resendCooldown > 0}
+                className="text-[#ffaa00] hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1"
               >
                 <RotateCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
-                {resending ? 'TRANSMITTING...' : 'RESEND PIN'}
+                {resending
+                  ? 'TRANSMITTING...'
+                  : resendCooldown > 0
+                  ? `RESEND IN ${resendCooldown}s`
+                  : 'RESEND PIN'}
               </button>
 
               <button
