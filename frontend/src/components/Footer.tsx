@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Terminal, Shield, BookOpen, HelpCircle, Activity } from 'lucide-react';
+import { Terminal, Shield, BookOpen, HelpCircle, Activity, Trophy, ShieldCheck } from 'lucide-react';
 
 /**
  * Componente de pie de pagina táctico naval (Combat Information Center).
- * Provee enlaces hacia las paginas de manual operativo, reglas y estado de subsistemas.
+ * Provee enlaces hacia las paginas de manual operativo, reglas, rankings publicos y privacidad.
  */
 export const Footer: React.FC = () => {
   return (
@@ -34,20 +34,34 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav aria-label="Tactical manual navigation" className="flex items-center gap-4 text-xs">
+        <nav aria-label="Tactical manual and legal navigation" className="flex flex-wrap items-center gap-4 text-xs">
+          <Link
+            href="/leaderboard"
+            className="text-[#8fa5bf] hover:text-[#ffd700] transition-colors flex items-center gap-1"
+          >
+            <Trophy className="w-3.5 h-3.5 text-[#ffd700]" />
+            <span>ADMIRALTY ROLL</span>
+          </Link>
           <Link
             href="/rules"
             className="text-[#8fa5bf] hover:text-[#00ff66] transition-colors flex items-center gap-1"
           >
-            <BookOpen className="w-3.5 h-3.5" />
+            <BookOpen className="w-3.5 h-3.5 text-[#00ff66]" />
             <span>TACTICAL RULES</span>
           </Link>
           <Link
             href="/faq"
             className="text-[#8fa5bf] hover:text-[#ffaa00] transition-colors flex items-center gap-1"
           >
-            <HelpCircle className="w-3.5 h-3.5" />
+            <HelpCircle className="w-3.5 h-3.5 text-[#ffaa00]" />
             <span>OPERATIONS FAQ</span>
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-[#8fa5bf] hover:text-[#00e5ff] transition-colors flex items-center gap-1"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-[#00e5ff]" />
+            <span>PRIVACY</span>
           </Link>
         </nav>
       </div>

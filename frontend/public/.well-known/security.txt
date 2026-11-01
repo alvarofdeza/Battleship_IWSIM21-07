@@ -1,0 +1,7 @@
+Contact: mailto:security@fleetgrid.me
+Contact: mailto:hello@fleetgrid.me
+Expires: 2027-10-31T23:59:59.000Z
+Preferred-Languages: en, es
+Canonical: https://fleetgrid.me/.well-known/security.txt
+Policy: https://fleetgrid.me/privacy
+Acknowledgments: https://fleetgrid.me/leaderboard

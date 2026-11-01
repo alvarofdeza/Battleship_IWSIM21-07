@@ -1,12 +1,19 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, HelpCircle, Server, Mail, ShieldAlert, Trophy, Volume2 } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Operations FAQ & System Telemetry',
+  description: 'Command procedures, guest mode combat, 6-digit OTP email verification, Web Audio synthesis, and anti-farming scoring defense.',
+  alternates: {
+    canonical: '/faq',
+  },
+};
 
 /**
  * Pagina de Preguntas Frecuentes y Guia Operativa del Sistema (CIC Operations FAQ).
- * Disenada para su posterior indexacion con el mismo estilo visual retro-militar.
+ * Renderizada de forma estatica en servidor para optima indexacion SEO y rendimiento.
  */
 export default function FaqPage() {
   return (

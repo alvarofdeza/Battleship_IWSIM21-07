@@ -1,14 +1,21 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Shield, Crosshair, Cpu, Award } from 'lucide-react';
+import type { Metadata } from 'next';
 import { FLEET_SHIPS } from '@/lib/types';
 import { PixelShip } from '@/components/PixelShips';
 
+export const metadata: Metadata = {
+  title: 'Combat Manual & Rules',
+  description: 'Tactical naval engagement guidelines, 10x10 coordinate grid, vessel specifications, AI algorithms and scoring formula.',
+  alternates: {
+    canonical: '/rules',
+  },
+};
+
 /**
  * Pagina de manual de combate naval y especificacion de reglas tacticas (CIC Manual).
- * Disenada para su posterior indexacion con el mismo estilo visual retro-militar.
+ * Renderizada de forma estatica en servidor para maxima velocidad e indexacion SEO.
  */
 export default function RulesPage() {
   return (
