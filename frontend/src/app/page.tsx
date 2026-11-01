@@ -281,7 +281,7 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col bg-[#050b14] ${crtActive ? 'crt-overlay' : ''} ${screenShake ? 'shake-hit' : ''}`}>
+    <div className={`min-h-dvh flex-1 flex flex-col bg-[#050b14] ${crtActive ? 'crt-overlay' : ''} ${screenShake ? 'shake-hit' : ''}`}>
       {/* Barra superior de mando naval */}
       <Header
         user={user}

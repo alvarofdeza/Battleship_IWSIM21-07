@@ -39,6 +39,37 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
   const [horizontal, setHorizontal] = useState(true);
   const [hoverCell, setHoverCell] = useState<{ r: number; c: number } | null>(null);
   const [difficulty, setDifficulty] = useState<AiDifficulty>('HARD');
+  const [focusedCell, setFocusedCell] = useState<{ r: number; c: number }>({ r: 0, c: 0 });
+
+  const handleGridCellKeyDown = (e: React.KeyboardEvent, r: number, c: number) => {
+    let nextR = r;
+    let nextC = c;
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      nextR = Math.max(0, r - 1);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextR = Math.min(9, r + 1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      nextC = Math.max(0, c - 1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextC = Math.min(9, c + 1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleCellClick(r, c);
+      return;
+    } else {
+      return;
+    }
+
+    setFocusedCell({ r: nextR, c: nextC });
+    setHoverCell({ r: nextR, c: nextC });
+    const targetElem = document.getElementById(`place-cell-${nextR}-${nextC}`);
+    targetElem?.focus();
+  };
 
   // Control de atajos de teclado (R o barra espaciadora para rotacion)
   useEffect(() => {
@@ -430,29 +461,34 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
         </div>
 
         {/* Panel Derecho: Cuadricula 10x10 Interactiva (7 columnas) */}
-        <div className="lg:col-span-7 flex flex-col items-center">
-          <div className="p-3 border-2 border-[#1a2d4f] bg-[#050b14] inline-block shadow-2xl">
+        <div className="lg:col-span-7 flex flex-col items-center w-full">
+          <div
+            role="grid"
+            aria-label="Drydock Anchorage 10x10 Matrix"
+            className="w-full max-w-[440px] p-2 sm:p-3 border-2 border-[#1a2d4f] bg-[#050b14] shadow-2xl overflow-hidden"
+          >
             {/* Cabecera de Columnas 1-10 */}
-            <div className="grid grid-cols-11 mb-1 text-center font-mono text-xs text-[#00ff66] font-bold">
-              <div className="w-8 h-6 flex items-center justify-center text-[#536780]">#</div>
+            <div role="row" className="grid grid-cols-11 mb-1 text-center font-mono text-[10px] sm:text-xs text-[#00ff66] font-bold gap-0.5 sm:gap-1">
+              <div className="flex items-center justify-center text-[#7892b0]">#</div>
               {COLS.map((c) => (
-                <div key={c} className="w-8 sm:w-9 md:w-10 h-6 flex items-center justify-center">
+                <div key={c} className="flex items-center justify-center">
                   {c}
                 </div>
               ))}
             </div>
 
             {/* Filas de la Cuadricula A-J */}
-            <div className="space-y-1">
+            <div className="space-y-0.5 sm:space-y-1">
               {ROWS.map((rowLabel, r) => (
-                <div key={rowLabel} className="grid grid-cols-11 items-center">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center font-mono text-xs text-[#00ff66] font-bold">
+                <div role="row" key={rowLabel} className="grid grid-cols-11 items-center gap-0.5 sm:gap-1">
+                  <div className="flex items-center justify-center font-mono text-[10px] sm:text-xs text-[#00ff66] font-bold">
                     {rowLabel}
                   </div>
 
                   {COLS.map((_, c) => {
                     const occupant = getCellOccupant(r, c);
                     const ghost = getCellGhostState(r, c);
+                    const isFocused = focusedCell.r === r && focusedCell.c === c;
 
                     let cellBg = 'bg-[#0a1322] border-[#1b2d4f] hover:border-[#00ff66]';
                     if (occupant) {
@@ -464,14 +500,28 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
                       cellBg = 'bg-[#ff3344]/30 border-[#ff3344] shadow-[0_0_8px_rgba(255,51,68,0.5)]';
                     }
 
+                    const occupantName = occupant ? FLEET_SHIPS.find((s) => s.type === occupant.type)?.name : null;
+                    const cellLabel = occupantName
+                      ? `Anchorage ${rowLabel}${c + 1}: Occupied by ${occupantName}`
+                      : `Anchorage ${rowLabel}${c + 1}: Open sea`;
+
                     return (
                       <button
+                        id={`place-cell-${r}-${c}`}
+                        role="gridcell"
+                        aria-label={cellLabel}
+                        tabIndex={isFocused ? 0 : -1}
                         key={`${r}-${c}`}
                         type="button"
+                        onFocus={() => {
+                          setFocusedCell({ r, c });
+                          setHoverCell({ r, c });
+                        }}
                         onMouseEnter={() => setHoverCell({ r, c })}
                         onMouseLeave={() => setHoverCell(null)}
+                        onKeyDown={(e) => handleGridCellKeyDown(e, r, c)}
                         onClick={() => handleCellClick(r, c)}
-                        className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 border transition-all flex items-center justify-center font-mono text-[10px] relative ${cellBg}`}
+                        className={`aspect-square w-full max-w-[40px] border transition-colors flex items-center justify-center font-mono text-[10px] relative touch-manipulation select-none focus:outline-none focus:ring-2 focus:ring-[#00ff66] focus:z-30 ${cellBg}`}
                         title={`Sector [${rowLabel}-${c + 1}]`}
                       >
                         {occupant && (

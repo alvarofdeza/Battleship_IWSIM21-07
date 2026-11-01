@@ -326,10 +326,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="e.g. ghost_01, alpha-7"
-                      className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                      className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                     />
                   </div>
-                  <span className="text-[10px] text-[#536780] font-mono mt-1 block">
+                  <span className="text-[10px] text-[#7892b0] font-mono mt-1 block">
                     Letters, numbers, underscores (_), and hyphens (-) allowed (3-20 chars). Displayed on Admiralty Roll.
                   </span>
                 </div>
@@ -341,17 +341,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Official Email
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="officer@navy.mil"
-                    className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                    className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                   />
                 </div>
-                <span className="text-[10px] text-[#536780] font-mono mt-1 block">
+                <span className="text-[10px] text-[#7892b0] font-mono mt-1 block">
                   {isRegister
                     ? 'A 6-digit confirmation PIN will be dispatched to this address.'
                     : 'Enter your registered email address to authorize command access.'}
@@ -363,7 +363,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Access Code / Password
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
+                  <Lock className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
                   <input
                     type="password"
                     required
@@ -371,11 +371,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                    className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                   />
                 </div>
                 {isRegister && (
-                  <span className="text-[10px] text-[#536780] font-mono mt-1 block">
+                  <span className="text-[10px] text-[#7892b0] font-mono mt-1 block">
                     Minimum 6 characters required for security clearance.
                   </span>
                 )}

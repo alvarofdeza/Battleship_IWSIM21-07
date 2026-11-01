@@ -27,7 +27,11 @@
   --color-ocean-deep: #072233;
 
   --color-steel-text: #8fa5bf;
-  --color-steel-muted: #536780;
+  --color-steel-muted: #7892b0;
+}
+
+:root {
+  --ease-tactical: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 * {
@@ -38,10 +42,12 @@ html, body {
   background-color: var(--color-hull-abyss);
   color: #e2ecf7;
   font-family: var(--font-tactical), monospace;
-  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
 /* CRT Scanlines Overlay */
@@ -127,11 +133,15 @@ html, body {
   border-left: 2px solid #2c4a7f;
   border-right: 2px solid #050b16;
   border-bottom: 2px solid #050b16;
-  transition: all 0.08s ease-in-out;
+  transition: transform 120ms var(--ease-tactical), background-color 120ms ease, border-color 120ms ease;
+  user-select: none;
+  touch-action: manipulation;
 }
 
-.bezel-tactical-btn:hover {
-  background: #152542;
+@media (hover: hover) and (pointer: fine) {
+  .bezel-tactical-btn:hover {
+    background: #152542;
+  }
 }
 
 .bezel-tactical-btn:active {
@@ -139,7 +149,23 @@ html, body {
   border-left: 2px solid #050b16;
   border-right: 2px solid #2c4a7f;
   border-bottom: 2px solid #2c4a7f;
-  transform: translateY(1px);
+  transform: scale(0.98) translateY(1px);
+}
+
+/* Reduccion de movimiento para usuarios con trastornos vestibulares o preferencia de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  .shake-hit,
+  .radar-beam,
+  .animate-ripple,
+  .animate-spin,
+  .animate-pulse,
+  .animate-ping {
+    animation: none !important;
+    transition: none !important;
+  }
+  .crt-overlay::before {
+    opacity: 0.3 !important;
+  }
 }
 
 /* Tactical Phosphor Glow */

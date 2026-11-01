@@ -34,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${pixelFont.variable} ${tacticalFont.variable} dark`}>
-      <body className="bg-[#050b14] text-[#e2ecf7] min-h-screen selection:bg-[#00ff66] selection:text-black antialiased">
+      <body className="bg-[#050b14] text-[#e2ecf7] min-h-dvh flex flex-col justify-between selection:bg-[#00ff66] selection:text-black antialiased">
         {children}
         <Toaster
           position="top-right"

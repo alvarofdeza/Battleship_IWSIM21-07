@@ -398,7 +398,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -408,14 +408,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 New Access Code
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
                 <input
                   type="password"
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimum 6 characters..."
-                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -425,14 +425,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 Confirm New Access Code
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#536780] absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
                 <input
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password..."
-                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-xs font-mono text-white focus:outline-none transition-colors"
+                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#38bdf8] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                 />
               </div>
             </div>

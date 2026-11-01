@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`px-2 py-1 text-[11px] font-mono flex items-center gap-1 border transition-all ${
               crtActive
                 ? 'border-[#00ff66] text-[#00ff66] bg-[#00ff66]/10'
-                : 'border-[#1a2d4f] text-[#536780] hover:text-[#8fa5bf]'
+                : 'border-[#1a2d4f] text-[#7892b0] hover:text-[#8fa5bf]'
             }`}
             title="Toggle CRT Screen Scanlines"
           >
@@ -134,17 +134,17 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Auth Button / Profile Pill */}
           {user ? (
-            <div className="flex items-center gap-1.5 border border-[#233b66] bg-[#060c18] px-2 py-1">
+            <div className="flex items-center gap-1.5 border border-[#233b66] bg-[#060c18] px-2 py-1 max-w-[180px] sm:max-w-none">
               <button
                 onClick={() => {
                   sounds.playClick();
                   onOpenProfile?.();
                 }}
-                className="flex items-center gap-1.5 text-left hover:opacity-80 transition-opacity"
+                className="flex items-center gap-1.5 text-left hover:opacity-80 transition-opacity min-w-0"
                 title="Open Officer Dossier"
               >
-                <User className="w-3.5 h-3.5 text-[#00ff66]" />
-                <span className="text-[11px] text-[#00ff66] font-mono uppercase font-bold tracking-wider">
+                <User className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />
+                <span className="text-[11px] text-[#00ff66] font-mono uppercase font-bold tracking-wider truncate max-w-[90px] sm:max-w-[140px]">
                   {user.username}
                 </span>
                 {stats && (
