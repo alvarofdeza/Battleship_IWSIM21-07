@@ -1,63 +1,102 @@
 package es.upm.etsisi.fis.server.service;
 
-import jakarta.mail.internet.MimeMessage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Servicio transaccional para el despacho de correos electronicos y codigos de verificacion militar mediante JavaMail.
+ * Servicio transaccional para el despacho de correos electronicos y codigos de verificacion militar
+ * mediante la API REST HTTPS v3 de Brevo (Puerto 443).
  */
 @Service
 public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-    private final JavaMailSender mailSender;
-    private final String fromEmail;
-    private final String mailPassword;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final String brevoApiKey;
+    private final String senderEmail;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public EmailService(
+            ObjectMapper objectMapper,
+            @Value("${brevo.api.key:}") String brevoApiKey,
+            @Value("${brevo.sender.email:fleetgrid.command@gmail.com}") String senderEmail
+    ) {
+        this(
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
+                objectMapper != null ? objectMapper : new ObjectMapper(),
+                brevoApiKey,
+                senderEmail
+        );
+    }
 
     public EmailService(
-            JavaMailSender mailSender,
-            @Value("${spring.mail.username:fleetgrid.command@gmail.com}") String fromEmail,
-            @Value("${spring.mail.password:}") String mailPassword
+            HttpClient httpClient,
+            ObjectMapper objectMapper,
+            String brevoApiKey,
+            String senderEmail
     ) {
-        this.mailSender = mailSender;
-        this.fromEmail = fromEmail != null ? fromEmail.trim() : "fleetgrid.command@gmail.com";
-        this.mailPassword = mailPassword != null ? mailPassword.trim() : "";
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
+        this.brevoApiKey = brevoApiKey != null ? brevoApiKey.trim() : "";
+        this.senderEmail = (senderEmail != null && !senderEmail.isBlank()) ? senderEmail.trim() : "fleetgrid.command@gmail.com";
     }
 
     /**
-     * Envia el codigo PIN militar de 6 digitos al correo del oficial.
+     * Envia el codigo PIN militar de 6 digitos al correo del oficial utilizando la API de Brevo.
      *
-     * @param toEmail Direccion de correo destinataria.
+     * @param toEmail  Direccion de correo destinataria.
      * @param username Nombre del oficial.
-     * @param otp Codigo de 6 digitos.
+     * @param otp      Codigo PIN de 6 digitos.
      */
     public void sendVerificationCode(String toEmail, String username, String otp) {
-        if (mailPassword.isEmpty() || mailPassword.equals("mock") || toEmail.endsWith("@test.com") || toEmail.endsWith("@example.com")) {
+        if (brevoApiKey.isEmpty() || brevoApiKey.equalsIgnoreCase("mock") || toEmail.endsWith("@test.com") || toEmail.endsWith("@example.com")) {
             logger.info("[OFFLINE MOCK EMAIL] Destinatario: {} | Oficial: {} | Codigo OTP Militar: [{}]", toEmail, username, otp);
             return;
         }
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            Map<String, Object> payload = Map.of(
+                    "sender", Map.of("name", "FleetGrid Command", "email", senderEmail),
+                    "to", List.of(Map.of("email", toEmail, "name", username)),
+                    "subject", "[FLEETGRID COMMAND] Codigo de Acceso Militar [" + otp + "]",
+                    "htmlContent", buildTacticalEmailHtml(username, otp)
+            );
 
-            helper.setFrom(fromEmail, "FleetGrid Command");
-            helper.setTo(toEmail);
-            helper.setSubject("[FLEETGRID COMMAND] Codigo de Acceso Militar [" + otp + "]");
-            helper.setText(buildTacticalEmailHtml(username, otp), true);
+            String requestBody = objectMapper.writeValueAsString(payload);
 
-            mailSender.send(message);
-            logger.info("Correo de verificacion militar entregado con exito via SMTP a {} (Oficial: {})", toEmail, username);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BREVO_API_URL))
+                    .header("api-key", brevoApiKey)
+                    .header("accept", "application/json")
+                    .header("content-type", "application/json")
+                    .timeout(Duration.ofSeconds(10))
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                logger.info("Correo de verificacion militar entregado con exito via Brevo API a {} (Oficial: {}) - Status: {}", toEmail, username, response.statusCode());
+            } else {
+                logger.error("Error al enviar correo via Brevo API a {}. Codigo HTTP: {}, Respuesta: {}", toEmail, response.statusCode(), response.body());
+            }
         } catch (Exception e) {
-            logger.error("Error al enviar correo de verificacion militar via SMTP a {}: {}", toEmail, e.getMessage());
+            logger.error("Excepcion al conectar con la API de Brevo para {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -65,7 +104,7 @@ public class EmailService {
      * Construye la plantilla HTML de transmision militar para el correo electronico.
      *
      * @param username Nombre del oficial.
-     * @param otp Codigo PIN de 6 digitos.
+     * @param otp      Codigo PIN de 6 digitos.
      * @return Contenido HTML estructurado.
      */
     public String buildTacticalEmailHtml(String username, String otp) {

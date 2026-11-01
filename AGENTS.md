@@ -90,7 +90,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
   - [x] Endpoint `POST /api/v1/games/{id}/claim` para transferir la partida jugada como invitado a la cuenta del usuario tras login o registro.
 
 - [x] **Fase 3: Verificacion de Correo con Codigo OTP de 6 Digitos:**
-  - [x] Servicio transaccional JavaMail (SMTP con Gmail y `fleetgrid.command@gmail.com`) con plantilla tactica naval y mock offline para dev/CI.
+  - [x] Servicio transaccional HTTP via Brevo API v3 (HTTPS Puerto 443, inmune al bloqueo de puertos SMTP en nubes PaaS como Render) con plantilla tactica naval y mock offline para dev/CI.
   - [x] Generacion y validacion de codigos OTP de 6 digitos con expiracion a los 10 minutos.
   - [x] Campos `email_verified`, `verification_otp` y `otp_expires_at` en `UserEntity` y endpoint `POST /api/v1/auth/verify-email`.
   - [x] Componente modal en el frontend con 6 casillas para introduccion del codigo PIN militar.
@@ -106,7 +106,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 
 - [ ] **Fase 5: Saneamiento de Base de Datos en Neon, Suite de Tests y Despliegue:**
   - [x] Sembrado de record de honor de referencia para `alvaro` y aislamiento en base de datos.
-  - [x] Suite de pruebas automatizada ampliada cubriendo los nuevos endpoints y calculos matematicos (180 tests passing).
+  - [x] Suite de pruebas automatizada ampliada cubriendo los nuevos endpoints, calculos matematicos y despacho transaccional HTTP (185 tests passing: 59 en core y 126 en backend).
   - [ ] Despliegue en produccion en Render y Vercel (tras push manual del desarrollador).
 
 ---

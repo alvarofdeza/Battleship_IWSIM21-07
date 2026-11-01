@@ -17,7 +17,7 @@
 > [!NOTE]
 > **Evolución del Proyecto:** FleetGrid es la evolución tecnológica avanzada y maduración profesional del proyecto académico original `Battleship_IWSIM21-07`, desarrollado inicialmente para la asignatura Fundamentos de Ingeniería del Software en la Universidad Politécnica de Madrid (UPM - ETSISI).
 
-Plataforma full-stack modular de combate naval táctico (FleetGrid). El proyecto ha sido transformado en una solución desacoplada de alto rendimiento con **Clean Architecture**, **Spring Boot 3**, **Spring Security con JWT**, **servicio transaccional JavaMail (SMTP)**, **persistencia relacional Spring Data JPA**, **algoritmos avanzados de Inteligencia Artificial** e **interfaz táctica web militar retro CRT en Next.js 16**.
+Plataforma full-stack modular de combate naval táctico (FleetGrid). El proyecto ha sido transformado en una solución desacoplada de alto rendimiento con **Clean Architecture**, **Spring Boot 3**, **Spring Security con JWT**, **servicio transaccional HTTP (Brevo API v3)**, **persistencia relacional Spring Data JPA**, **algoritmos avanzados de Inteligencia Artificial** e **interfaz táctica web militar retro CRT en Next.js 16**.
 
 ---
 
@@ -78,7 +78,7 @@ Plataforma full-stack modular de combate naval táctico (FleetGrid). El proyecto
 * **Frontend Web:** Next.js 16.4 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide Icons, Sonner, Canvas Confetti
 * **Audio y FX:** Web Audio API (sintetizador oscilador nativo sin assets externos)
 * **Documentacion API:** SpringDoc OpenAPI 2.5.0 / Swagger UI 5.13.0
-* **Seguridad & Tokens:** JJWT 0.12.5, BCrypt, Spring Mail (JavaMailSender / Gmail SMTP `fleetgrid.command@gmail.com`)
+* **Seguridad & Tokens:** JJWT 0.12.5, BCrypt, Brevo REST API v3 sobre HTTPS (Puerto 443, transmision transaccional de PIN OTP militar)
 * **Bases de Datos:** H2 Database (desarrollo y testing en memoria), PostgreSQL (configurado para produccion)
 * **Build & Dependency Management:** Apache Maven Wrapper (`mvnw` / `mvnw.cmd`), npm
 * **Testing:** JUnit 5 Jupiter 5.10.2, MockMvc, Mockito 5.11, AssertJ 3.25
@@ -208,12 +208,8 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
    * `SPRING_PROFILES_ACTIVE`: `prod`
    * `SPRING_DATASOURCE_URL`: *(Cadena de conexion copiada de Neon)*
    * `JWT_SECRET`: *(Cadena secreta aleatoria de al menos 64 caracteres en hexadecimal, o la definida en `.env.example`)*
-   * `SPRING_MAIL_HOST`: `smtp.gmail.com`
-   * `SPRING_MAIL_PORT`: `587`
-   * `SPRING_MAIL_USERNAME`: `fleetgrid.command@gmail.com`
-   * `SPRING_MAIL_PASSWORD`: *(Contrasena de aplicacion de 16 caracteres generada en Google)*
-   * `SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH`: `true`
-   * `SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE`: `true`
+   * `BREVO_API_KEY`: *(Clave API v3 generada en Brevo con acceso a emails transaccionales)*
+   * `BREVO_SENDER_EMAIL`: `fleetgrid.command@gmail.com`
 4. Pulsa **Create Web Service**. Render compila la imagen multi-stage y publica la URL HTTPS: `https://battleship-backend-ys61.onrender.com`.
 5. **Configuracion de Keep-Alive y Gestion de Cuota (750h/mes):**
    * Render Free proporciona 750 horas de computo al mes compartidas entre todos los servicios de la cuenta. Un servicio 24/7 consume ~744 horas.
