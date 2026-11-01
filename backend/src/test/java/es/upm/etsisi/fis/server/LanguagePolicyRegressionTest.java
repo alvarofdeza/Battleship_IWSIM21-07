@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -22,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class LanguagePolicyRegressionTest {
 
-    private static final Pattern STRING_LITERAL_PATTERN = Pattern.compile("\"([^\"\\\\]|\\\\.)*\"");
     private static final Pattern ACCENTED_CHAR_PATTERN = Pattern.compile("[áéíóúñÁÉÍÓÚÑ¿¡]");
 
     private static final Pattern[] FORBIDDEN_SPANISH_PATTERNS = {
@@ -72,13 +70,11 @@ class LanguagePolicyRegressionTest {
                 paths.filter(p -> p.toString().endsWith(".java")).forEach(javaFile -> {
                     try {
                         String code = Files.readString(javaFile, StandardCharsets.UTF_8);
-                        String strippedCode = stripComments(code);
+                        List<String> literals = extractStringLiterals(code);
 
-                        Matcher matcher = STRING_LITERAL_PATTERN.matcher(strippedCode);
-                        while (matcher.find()) {
-                            String literal = matcher.group();
+                        for (String literal : literals) {
                             if (ACCENTED_CHAR_PATTERN.matcher(literal).find()) {
-                                violations.add(javaFile.getFileName() + " contiene tildes/eñes en literal: " + literal);
+                                violations.add(javaFile.getFileName() + " contiene tildes/eñes en literal: \"" + literal + "\"");
                             }
                         }
                     } catch (IOException e) {
@@ -109,14 +105,12 @@ class LanguagePolicyRegressionTest {
                 paths.filter(p -> p.toString().endsWith(".java")).forEach(javaFile -> {
                     try {
                         String code = Files.readString(javaFile, StandardCharsets.UTF_8);
-                        String strippedCode = stripComments(code);
+                        List<String> literals = extractStringLiterals(code);
 
-                        Matcher matcher = STRING_LITERAL_PATTERN.matcher(strippedCode);
-                        while (matcher.find()) {
-                            String literal = matcher.group();
+                        for (String literal : literals) {
                             for (Pattern pattern : FORBIDDEN_SPANISH_PATTERNS) {
                                 if (pattern.matcher(literal).find()) {
-                                    violations.add(javaFile.getFileName() + " contiene palabra en espanol en literal: " + literal);
+                                    violations.add(javaFile.getFileName() + " contiene palabra en espanol en literal: \"" + literal + "\"");
                                 }
                             }
                         }
@@ -132,12 +126,79 @@ class LanguagePolicyRegressionTest {
     }
 
     /**
-     * Elimina comentarios de una linea y de bloque para inspeccionar unicamente tokens de codigo.
+     * Extrae de forma iterativa y segura todos los literales de cadena de un archivo fuente Java,
+     * ignorando comentarios de bloque y de linea sin utilizar expresiones regulares recursivas
+     * que puedan provocar desbordamiento de pila (StackOverflowError).
      */
-    private String stripComments(String source) {
-        // Eliminar comentarios de bloque /* ... */
-        String withoutBlockComments = source.replaceAll("/\\*[\\s\\S]*?\\*/", "");
-        // Eliminar comentarios de linea // ...
-        return withoutBlockComments.replaceAll("//.*", "");
+    private List<String> extractStringLiterals(String source) {
+        List<String> literals = new ArrayList<>();
+        int length = source.length();
+        int i = 0;
+        while (i < length) {
+            char c = source.charAt(i);
+
+            // Manejo de comentarios
+            if (c == '/' && i + 1 < length) {
+                char next = source.charAt(i + 1);
+                if (next == '/') {
+                    // Comentario de linea: saltar hasta el salto de linea
+                    i += 2;
+                    while (i < length && source.charAt(i) != '\n' && source.charAt(i) != '\r') {
+                        i++;
+                    }
+                    continue;
+                } else if (next == '*') {
+                    // Comentario de bloque: saltar hasta */
+                    i += 2;
+                    while (i + 1 < length && !(source.charAt(i) == '*' && source.charAt(i + 1) == '/')) {
+                        i++;
+                    }
+                    i += 2; // saltar los caracteres */
+                    continue;
+                }
+            }
+
+            // Manejo de literales de caracteres ('a', '\'', etc.) para no confundir comillas
+            if (c == '\'') {
+                i++;
+                if (i < length && source.charAt(i) == '\\') {
+                    i += 2; // saltar escape
+                } else {
+                    i++;
+                }
+                while (i < length && source.charAt(i) != '\'') {
+                    i++;
+                }
+                if (i < length) i++; // saltar comilla de cierre
+                continue;
+            }
+
+            // Manejo de literales de cadena ("...")
+            if (c == '"') {
+                StringBuilder sb = new StringBuilder();
+                i++;
+                boolean escaped = false;
+                while (i < length) {
+                    char ch = source.charAt(i);
+                    if (escaped) {
+                        sb.append(ch);
+                        escaped = false;
+                    } else if (ch == '\\') {
+                        escaped = true;
+                    } else if (ch == '"') {
+                        i++; // fin de la cadena
+                        break;
+                    } else {
+                        sb.append(ch);
+                    }
+                    i++;
+                }
+                literals.add(sb.toString());
+                continue;
+            }
+
+            i++;
+        }
+        return literals;
     }
 }

@@ -9,6 +9,12 @@ ALTER TABLE server_users ADD COLUMN IF NOT EXISTS otp_attempts INT DEFAULT 0;
 ALTER TABLE server_users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
 
 -- Asegurar columnas necesarias en server_games si la tabla ya existia previamente
+-- Si la tabla server_games fue creada por versiones tempranas con game_id, aseguramos la creacion y sincronizacion de id
+ALTER TABLE server_games ADD COLUMN IF NOT EXISTS id VARCHAR(64);
+ALTER TABLE server_games ADD COLUMN IF NOT EXISTS game_id VARCHAR(64);
+UPDATE server_games SET id = game_id WHERE id IS NULL AND game_id IS NOT NULL;
+UPDATE server_games SET id = 'game-' || CAST(COALESCE(points, 0) AS VARCHAR(20)) || '-' || CAST(CURRENT_TIMESTAMP AS VARCHAR(30)) WHERE id IS NULL;
+
 ALTER TABLE server_games ADD COLUMN IF NOT EXISTS user_id BIGINT;
 ALTER TABLE server_games ADD COLUMN IF NOT EXISTS player1_username VARCHAR(50);
 ALTER TABLE server_games ADD COLUMN IF NOT EXISTS player2_username VARCHAR(50);
