@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Trophy, Award, Shield, Users, Medal, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trophy, Shield, Users, Medal, Loader2 } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

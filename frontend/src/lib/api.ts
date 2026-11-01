@@ -2,7 +2,6 @@ import {
   AuthResponse,
   GameSummary,
   MatchScoreItem,
-  MoveHistoryItem,
   PlayerRankingItem,
   ScoreItem,
   ShotResponse,
