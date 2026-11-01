@@ -71,10 +71,27 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let slowTimer: ReturnType<typeof setTimeout> | null = null;
+    if (typeof window !== 'undefined') {
+      slowTimer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('fleetgrid:coldstart', { detail: { isSlow: true } }));
+      }, 3000);
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } finally {
+      if (slowTimer) {
+        clearTimeout(slowTimer);
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('fleetgrid:coldstart', { detail: { isSlow: false } }));
+      }
+    }
 
     if (!response.ok) {
       let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
@@ -229,13 +246,6 @@ class ApiClient {
     return this.request<MatchScoreItem>(`/games/${gameId}/claim`, {
       method: 'POST',
     });
-  }
-
-  /**
-   * Recupera la cronologia completa de disparos efectuados durante la partida.
-   */
-  public async getGameHistory(gameId: string): Promise<MoveHistoryItem[]> {
-    return this.request<MoveHistoryItem[]>(`/games/${gameId}/history`);
   }
 
   // --- Endpoints de Clasificaciones y Expedientes ---

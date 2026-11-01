@@ -2,8 +2,9 @@ package es.upm.etsisi.fis.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.upm.etsisi.fis.server.dto.auth.LoginRequest;
-import es.upm.etsisi.fis.server.entity.LeaderboardScoreEntity;
-import es.upm.etsisi.fis.server.repository.LeaderboardScoreRepository;
+import es.upm.etsisi.fis.server.entity.GameRecordEntity;
+import es.upm.etsisi.fis.server.repository.GameRecordRepository;
+import es.upm.etsisi.fis.server.service.LeaderboardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,13 +34,17 @@ class LeaderboardControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private LeaderboardScoreRepository leaderboardScoreRepository;
+    private GameRecordRepository gameRecordRepository;
+
+    @Autowired
+    private LeaderboardService leaderboardService;
 
     private String jwtToken;
 
     @BeforeEach
     void setUp() throws Exception {
-        leaderboardScoreRepository.deleteAll();
+        gameRecordRepository.deleteAll();
+        leaderboardService.invalidateLeaderboardCache();
 
         LoginRequest login = new LoginRequest("alvaro@alumnos.upm.es", "password123");
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -51,9 +56,9 @@ class LeaderboardControllerIntegrationTest {
         String responseJson = result.getResponse().getContentAsString();
         this.jwtToken = objectMapper.readTree(responseJson).get("token").asText();
 
-        leaderboardScoreRepository.save(new LeaderboardScoreEntity("alvaro", 1250L, "test-game-1", "NORMAL", 110, 24, "VICTORY"));
-        leaderboardScoreRepository.save(new LeaderboardScoreEntity("adrian", 820L, "test-game-2", "EASY", 150, 30, "VICTORY"));
-        leaderboardScoreRepository.save(new LeaderboardScoreEntity("alvaro", 300L, "test-game-3", "NORMAL", 95, 18, "DEFEAT"));
+        gameRecordRepository.save(new GameRecordEntity("test-game-1", null, "alvaro", "AI-Opponent", "NORMAL", 110L, 24, "VICTORY", 1250L));
+        gameRecordRepository.save(new GameRecordEntity("test-game-2", null, "adrian", "AI-Opponent", "EASY", 150L, 30, "VICTORY", 820L));
+        gameRecordRepository.save(new GameRecordEntity("test-game-3", null, "alvaro", "AI-Opponent", "NORMAL", 95L, 18, "DEFEAT", 300L));
     }
 
     @Test
@@ -69,68 +74,71 @@ class LeaderboardControllerIntegrationTest {
     @Test
     @DisplayName("Consultar clasificacion global devuelve todas las puntuaciones ordenadas")
     void testGetGlobalLeaderboard() throws Exception {
-        mockMvc.perform(get("/api/v1/leaderboard/global")
-                        .header("Authorization", "Bearer " + jwtToken))
+        mockMvc.perform(get("/api/v1/leaderboard/global"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].points").value(1250));
     }
 
     @Test
-    @DisplayName("Consultar Top 10 mejores partidas individuales publicamente")
+    @DisplayName("Consultar top 10 partidas devuelve ordenacion por puntos descendente")
     void testGetTopMatches() throws Exception {
         mockMvc.perform(get("/api/v1/leaderboard/matches"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].playerUsername").value("alvaro"))
                 .andExpect(jsonPath("$[0].points").value(1250))
-                .andExpect(jsonPath("$[0].result").value("VICTORY"))
-                .andExpect(jsonPath("$[0].difficulty").value("NORMAL"));
+                .andExpect(jsonPath("$[1].playerUsername").value("adrian"))
+                .andExpect(jsonPath("$[1].points").value(820));
     }
 
     @Test
-    @DisplayName("Consultar Top 10 jugadores por suma de puntos acumulados")
+    @DisplayName("Consultar top jugadores agrupa por suma total de puntos de carrera")
     void testGetTopPlayers() throws Exception {
         mockMvc.perform(get("/api/v1/leaderboard/players"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].username").value("alvaro"))
-                .andExpect(jsonPath("$[0].totalPoints").value(1550)) // 1250 + 300
-                .andExpect(jsonPath("$[0].navalRank").isString());
+                .andExpect(jsonPath("$[0].totalPoints").value(1550))
+                .andExpect(jsonPath("$[0].totalGames").value(2))
+                .andExpect(jsonPath("$[0].totalWins").value(1))
+                .andExpect(jsonPath("$[1].username").value("adrian"))
+                .andExpect(jsonPath("$[1].totalPoints").value(820));
     }
 
     @Test
-    @DisplayName("Consultar mejores partidas personales con metadatos completos")
-    void testGetMyBestMatches() throws Exception {
+    @DisplayName("Consultar expediente propio de partidas requiere token JWT")
+    void testGetMyMatchesRequiresAuth() throws Exception {
+        mockMvc.perform(get("/api/v1/leaderboard/me/matches"))
+                .andExpect(status().isForbidden());
+
         mockMvc.perform(get("/api/v1/leaderboard/me/matches")
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].username").value("alvaro"))
-                .andExpect(jsonPath("$[0].points").value(1250));
+                .andExpect(jsonPath("$[0].playerUsername").value("alvaro"));
     }
 
     @Test
-    @DisplayName("Consultar partidas recientes personales devuelve orden cronologico")
+    @DisplayName("Consultar historial reciente del oficial devuelve partidas en orden cronologico")
     void testGetMyRecentMatches() throws Exception {
         mockMvc.perform(get("/api/v1/leaderboard/me/recent")
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$[0].playerUsername").value("alvaro"));
     }
 
     @Test
-    @DisplayName("Consultar expediente militar y estadisticas de carrera del oficial")
+    @DisplayName("Consultar estadisticas agregadas del perfil calcula correctamente victorias y rango")
     void testGetMyStats() throws Exception {
         mockMvc.perform(get("/api/v1/leaderboard/me/stats")
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("alvaro"))
                 .andExpect(jsonPath("$.totalPoints").value(1550))
-                .andExpect(jsonPath("$.totalGames").value(2))
                 .andExpect(jsonPath("$.totalWins").value(1))
                 .andExpect(jsonPath("$.totalLosses").value(1))
-                .andExpect(jsonPath("$.winRate").value(50.0))
+                .andExpect(jsonPath("$.winRate").value(0.5))
                 .andExpect(jsonPath("$.navalRank").value("Naval Cadet"));
     }
 }

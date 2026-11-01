@@ -18,6 +18,20 @@ public class MatchScoreResponse {
 
     public MatchScoreResponse() {}
 
+    public MatchScoreResponse(String gameId, String username, long points,
+                              String difficulty, long durationSeconds, int movesCount,
+                              String result, LocalDateTime recordedAt) {
+        this.id = 0L;
+        this.username = username;
+        this.points = points;
+        this.gameId = gameId;
+        this.difficulty = difficulty;
+        this.durationSeconds = durationSeconds;
+        this.movesCount = movesCount;
+        this.result = result;
+        this.recordedAt = recordedAt;
+    }
+
     public MatchScoreResponse(Long id, String username, long points, String gameId,
                               String difficulty, long durationSeconds, int movesCount,
                               String result, LocalDateTime recordedAt) {
@@ -41,6 +55,10 @@ public class MatchScoreResponse {
     }
 
     public String getUsername() {
+        return username;
+    }
+
+    public String getPlayerUsername() {
         return username;
     }
 

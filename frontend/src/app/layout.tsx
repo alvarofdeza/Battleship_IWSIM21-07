@@ -3,6 +3,7 @@ import { Press_Start_2P, Share_Tech_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { Footer } from '@/components/Footer';
 import { WebMetrics } from '@/components/WebMetrics';
+import { WarmUp } from '@/components/WarmUp';
 import './globals.css';
 
 const pixelFont = Press_Start_2P({
@@ -139,6 +140,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${pixelFont.variable} ${tacticalFont.variable} dark`}>
       <head>
+        <link rel="preconnect" href="https://api.fleetgrid.me" />
+        <link rel="dns-prefetch" href="https://api.fleetgrid.me" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGame) }}
@@ -152,6 +155,7 @@ export default function RootLayout({
         <div className="flex-1 flex flex-col">
           {children}
         </div>
+        <WarmUp />
         <WebMetrics />
         <Footer />
         <Toaster

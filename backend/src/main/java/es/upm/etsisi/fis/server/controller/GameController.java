@@ -73,11 +73,4 @@ public class GameController {
         MatchScoreResponse response = gameService.claimGame(gameId, userDetails.getUsername());
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/{gameId}/history")
-    @Operation(summary = "Match shot telemetry history", description = "Returns chronological list of all attacks executed by both players.")
-    public ResponseEntity<List<MoveHistoryDto>> getGameHistory(@PathVariable("gameId") String gameId) {
-        List<MoveHistoryDto> history = gameService.getGameHistory(gameId);
-        return ResponseEntity.ok(history);
-    }
 }

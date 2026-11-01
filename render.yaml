@@ -6,27 +6,30 @@ services:
     dockerContext: .
     plan: free
     region: frankfurt
+    healthCheckPath: /healthz
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: battleship-db
-          property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase:
-          name: battleship-db
-          property: user
-      - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase:
-          name: battleship-db
-          property: password
+      - key: PORT
+        value: 8080
       - key: JWT_SECRET
         generateValue: true
-
-databases:
-  - name: battleship-db
-    plan: free
-    region: frankfurt
-    databaseName: battleship_db
-    user: postgres
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://fleetgrid.me
+      - key: BREVO_SENDER_EMAIL
+        value: noreply@fleetgrid.me
+      - key: MAIL_PROVIDER
+        value: brevo
+      # Las siguientes credenciales sensibles deben configurarse en el panel de Render:
+      # - SPRING_DATASOURCE_URL (Cadena Neon PostgreSQL con ?sslmode=require)
+      # - SPRING_DATASOURCE_USERNAME (Usuario Neon)
+      # - SPRING_DATASOURCE_PASSWORD (Contrasena Neon)
+      # - BREVO_API_KEY (Clave de API transaccional v3 de Brevo)
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false

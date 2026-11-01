@@ -1,5 +1,7 @@
 package es.upm.etsisi.fis.server.security;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,9 +16,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Filtro HTTP que intercepta el encabezado Authorization Bearer, valida el JWT y establece el contexto de seguridad.
+ * Implementa cache en memoria con Caffeine (TTL 5 minutos) para evitar consultas a la base de datos en cada peticion.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -24,9 +28,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    /**
+     * Cache en memoria de UserDetails con desalojo a los 5 minutos para blindar la base de datos.
+     */
+    private final Cache<String, UserDetails> userDetailsCache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(500)
+            .build();
+
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+    }
+
+    /**
+     * Invalida la entrada de cache de un oficial (por ejemplo al cambiar contrasena o darse de baja).
+     *
+     * @param username Nombre de usuario del oficial.
+     */
+    public void invalidateUserCache(String username) {
+        if (username != null) {
+            userDetailsCache.invalidate(username);
+        }
     }
 
     @Override
@@ -53,9 +76,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            // Consulta la cache en memoria primero; solo va a BD si no existe o ha expirado el TTL
+            UserDetails userDetails = userDetailsCache.get(username, this.userDetailsService::loadUserByUsername);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            if (userDetails != null && jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

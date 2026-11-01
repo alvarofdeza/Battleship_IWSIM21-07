@@ -37,10 +37,14 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final es.upm.etsisi.fis.server.security.RateLimitingFilter rateLimitingFilter;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
+                          es.upm.etsisi.fis.server.security.RateLimitingFilter rateLimitingFilter,
+                          UserDetailsService userDetailsService) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
         this.userDetailsService = userDetailsService;
     }
 
@@ -73,7 +77,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/games/*/claim").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/games", "/api/v1/games/*/shots").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/games/*", "/api/v1/games/*/history").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/games/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
@@ -81,6 +85,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

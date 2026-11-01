@@ -34,7 +34,7 @@ const COLS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * Cuadricula tactica naval interactiva de 10x10 casillas.
  * Renderiza impactos, fallos en agua, buques aliados y niebla de guerra con estetica militar.
  */
-export const CombatGrid: React.FC<CombatGridProps> = ({
+const CombatGridComponent: React.FC<CombatGridProps> = ({
   title,
   subtitle,
   grid,
@@ -275,3 +275,5 @@ export const CombatGrid: React.FC<CombatGridProps> = ({
     </div>
   );
 };
+
+export const CombatGrid = React.memo(CombatGridComponent);

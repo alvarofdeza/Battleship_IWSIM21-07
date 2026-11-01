@@ -1,13 +1,49 @@
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/xml,text/plain,application/javascript,text/css
+    min-response-size: 1024
+
 spring:
   config:
     activate:
       on-profile: prod
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/battleship_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/battleship_db?sslmode=require}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0
+      idle-timeout: 30000
+      keepalive-time: 0
+      connection-timeout: 15000
+      max-lifetime: 600000
+      pool-name: FleetGridHikariPool
+  h2:
+    console:
+      enabled: false
   jpa:
+    open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+    show-sql: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+ratelimit:
+  enabled: ${RATELIMIT_ENABLED:true}
+
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
+    es.upm.etsisi.fis: INFO

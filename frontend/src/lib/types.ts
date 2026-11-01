@@ -88,16 +88,21 @@ export interface ShotResponse {
   playerRow: number;
   playerCol: number;
   playerShotResult: 'Hit' | 'Water' | 'Sunk' | 'Already attacked';
+  playerSunkShip?: string;
   aiCounterAttacked: boolean;
   aiRow?: number;
   aiCol?: number;
   aiShotResult?: string;
+  aiSunkShip?: string;
   finished: boolean;
   winner?: string | null;
   currentTurn?: string | null;
   points?: number;
   movesCount?: number;
   durationSeconds?: number;
+  myFleetGrid?: string[];
+  enemyFogGrid?: string[];
+  newLogs?: MoveHistoryItem[];
 }
 
 /**

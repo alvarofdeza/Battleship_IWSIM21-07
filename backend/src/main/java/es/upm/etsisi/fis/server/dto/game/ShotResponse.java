@@ -1,18 +1,24 @@
 package es.upm.etsisi.fis.server.dto.game;
 
+import java.util.List;
+
 /**
- * Respuesta DTO con el resultado del disparo del jugador y el contraataque correspondiente de la IA.
+ * Respuesta DTO integral para un disparo de combate naval (1 Disparo = 1 Peticion).
+ * Provee en un unico viaje de red todo lo que la interfaz de usuario necesita para actualizar tableros,
+ * logs cronologicos, estado de turnos y fin de combate, evitando llamadas adicionales a la API.
  */
 public class ShotResponse {
     private String gameId;
     private int playerRow;
     private int playerCol;
     private String playerShotResult;
+    private String playerSunkShip;
 
     private boolean aiCounterAttacked;
     private Integer aiRow;
     private Integer aiCol;
     private String aiShotResult;
+    private String aiSunkShip;
 
     private boolean finished;
     private String winner;
@@ -20,6 +26,11 @@ public class ShotResponse {
     private Long points;
     private Integer movesCount;
     private Long durationSeconds;
+
+    // Estado completo de los tableros para actualizacion inmediata sin viajes de red adicionales
+    private char[][] myFleetGrid;
+    private char[][] enemyFogGrid;
+    private List<MoveHistoryDto> newLogs;
 
     public ShotResponse() {}
 
@@ -55,6 +66,14 @@ public class ShotResponse {
         this.playerShotResult = playerShotResult;
     }
 
+    public String getPlayerSunkShip() {
+        return playerSunkShip;
+    }
+
+    public void setPlayerSunkShip(String playerSunkShip) {
+        this.playerSunkShip = playerSunkShip;
+    }
+
     public boolean isAiCounterAttacked() {
         return aiCounterAttacked;
     }
@@ -85,6 +104,14 @@ public class ShotResponse {
 
     public void setAiShotResult(String aiShotResult) {
         this.aiShotResult = aiShotResult;
+    }
+
+    public String getAiSunkShip() {
+        return aiSunkShip;
+    }
+
+    public void setAiSunkShip(String aiSunkShip) {
+        this.aiSunkShip = aiSunkShip;
     }
 
     public boolean isFinished() {
@@ -133,5 +160,29 @@ public class ShotResponse {
 
     public void setDurationSeconds(Long durationSeconds) {
         this.durationSeconds = durationSeconds;
+    }
+
+    public char[][] getMyFleetGrid() {
+        return myFleetGrid;
+    }
+
+    public void setMyFleetGrid(char[][] myFleetGrid) {
+        this.myFleetGrid = myFleetGrid;
+    }
+
+    public char[][] getEnemyFogGrid() {
+        return enemyFogGrid;
+    }
+
+    public void setEnemyFogGrid(char[][] enemyFogGrid) {
+        this.enemyFogGrid = enemyFogGrid;
+    }
+
+    public List<MoveHistoryDto> getNewLogs() {
+        return newLogs;
+    }
+
+    public void setNewLogs(List<MoveHistoryDto> newLogs) {
+        this.newLogs = newLogs;
     }
 }

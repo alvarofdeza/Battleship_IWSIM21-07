@@ -99,6 +99,25 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!-- In-Memory High Performance Cache (Caffeine) -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
+
+    <!-- In-Memory Token Bucket Rate Limiting (Bucket4j) -->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-core</artifactId>
+      <version>8.10.1</version>
+    </dependency>
+
+    <!-- Database Migration (Flyway) -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+
     <!-- Testing Starters -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

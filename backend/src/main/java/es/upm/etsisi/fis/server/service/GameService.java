@@ -1,35 +1,41 @@
 package es.upm.etsisi.fis.server.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import es.upm.etsisi.fis.model.*;
 import es.upm.etsisi.fis.server.dto.game.GameSummaryResponse;
 import es.upm.etsisi.fis.server.dto.game.MoveHistoryDto;
 import es.upm.etsisi.fis.server.dto.game.ShotResponse;
 import es.upm.etsisi.fis.server.dto.leaderboard.MatchScoreResponse;
 import es.upm.etsisi.fis.server.entity.GameRecordEntity;
-import es.upm.etsisi.fis.server.entity.LeaderboardScoreEntity;
-import es.upm.etsisi.fis.server.entity.MoveRecordEntity;
+import es.upm.etsisi.fis.server.entity.UserEntity;
 import es.upm.etsisi.fis.server.exception.ResourceNotFoundException;
 import es.upm.etsisi.fis.server.repository.GameRecordRepository;
-import es.upm.etsisi.fis.server.repository.LeaderboardScoreRepository;
-import es.upm.etsisi.fis.server.repository.MoveRecordRepository;
+import es.upm.etsisi.fis.server.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Servicio de orquestacion de partidas, conexion con el motor de dominio, modo invitado y trazabilidad en base de datos.
+ * Servicio de orquestacion de partidas navales, conexion con el motor de dominio puro,
+ * modo invitado y persistencia optimizada en el modelo definitivo de dos tablas.
+ *
+ * Presupuesto de base de datos blindado:
+ * - Durante la partida (creacion y disparos intermedios): 0 consultas y 0 inserts a PostgreSQL.
+ * - Al finalizar la partida: exactamente 1 INSERT en server_games (si es oficial) o en memoria (si es invitado).
+ * - Sesiones de juego en memoria gestionadas con Caffeine (TTL 1 hora, maximo 200 sesiones simultaneas).
  */
 @Service
 public class GameService {
 
     /**
-     * Metadatos en memoria para sesiones de juego activas o de invitados.
+     * Metadatos en memoria para sesiones de juego activas o pendientes de reclamacion.
      */
     public static class GameSessionMetadata {
         private final String gameId;
@@ -77,33 +83,51 @@ public class GameService {
         public boolean isClaimed() { return claimed; }
         public void setClaimed(boolean claimed) { this.claimed = claimed; }
         public List<MoveHistoryDto> getInMemoryMoves() { return inMemoryMoves; }
-        public void addMove(String playerUsername, int row, int col, String result) {
+
+        public MoveHistoryDto addMove(String playerUsername, int row, int col, String result) {
             long moveId = inMemoryMoves.size() + 1L;
-            inMemoryMoves.add(new MoveHistoryDto(moveId, gameId, playerUsername, row, col, result, LocalDateTime.now()));
+            MoveHistoryDto move = new MoveHistoryDto(moveId, gameId, playerUsername, row, col, result, LocalDateTime.now());
+            inMemoryMoves.add(move);
+            return move;
         }
     }
 
     private final GameRecordRepository gameRecordRepository;
-    private final MoveRecordRepository moveRecordRepository;
-    private final LeaderboardScoreRepository leaderboardScoreRepository;
+    private final UserRepository userRepository;
+    private final LeaderboardService leaderboardService;
 
-    private final Map<String, Game> activeSessions = new ConcurrentHashMap<>();
-    private final Map<String, GameSessionMetadata> sessionMetadata = new ConcurrentHashMap<>();
+    /**
+     * Cache en memoria de sesiones activas (TTL 1 hora, maximo 200 sesiones concurrentes).
+     */
+    private final Cache<String, Game> activeSessions = Caffeine.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .maximumSize(200)
+            .build();
+
+    /**
+     * Cache en memoria de metadatos de sesion (TTL 1 hora, maximo 200 sesiones concurrentes).
+     */
+    private final Cache<String, GameSessionMetadata> sessionMetadata = Caffeine.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .maximumSize(200)
+            .build();
 
     public GameService(GameRecordRepository gameRecordRepository,
-                       MoveRecordRepository moveRecordRepository,
-                       LeaderboardScoreRepository leaderboardScoreRepository) {
+                       UserRepository userRepository,
+                       LeaderboardService leaderboardService) {
         this.gameRecordRepository = gameRecordRepository;
-        this.moveRecordRepository = moveRecordRepository;
-        this.leaderboardScoreRepository = leaderboardScoreRepository;
+        this.userRepository = userRepository;
+        this.leaderboardService = leaderboardService;
     }
 
-    @Transactional
     public GameSummaryResponse createSoloGame(String username, String difficulty) {
         return createSoloGame(username, difficulty, false);
     }
 
-    @Transactional
+    /**
+     * Crea una nueva sesion de combate contra la IA.
+     * Cero consultas e inserciones en base de datos: la sesion reside exclusivamente en memoria.
+     */
     public GameSummaryResponse createSoloGame(String username, String difficulty, boolean isGuest) {
         String effectiveUsername = (username != null && !username.isBlank()) ? username : "Guest";
         String gameId = UUID.randomUUID().toString().substring(0, 8);
@@ -125,34 +149,21 @@ public class GameService {
         );
         sessionMetadata.put(gameId, metadata);
 
-        // Si no es invitado, persistir inmediatamente en base de datos
-        if (!isGuest) {
-            GameRecordEntity gameRecord = new GameRecordEntity(
-                    gameId,
-                    effectiveUsername,
-                    aiOpponent.getName(),
-                    "SOLO_AI",
-                    metadata.getDifficulty(),
-                    "IN_PROGRESS"
-            );
-            gameRecordRepository.save(gameRecord);
-        }
-
         return buildGameSummary(gameId, domainGame, effectiveUsername);
     }
 
     public GameSummaryResponse getGameSummary(String gameId, String username) {
-        Game domainGame = activeSessions.get(gameId);
+        Game domainGame = activeSessions.getIfPresent(gameId);
         if (domainGame == null) {
             GameRecordEntity record = gameRecordRepository.findById(gameId)
                     .orElseThrow(() -> new ResourceNotFoundException("Game not found: " + gameId));
 
             GameSummaryResponse response = new GameSummaryResponse();
-            response.setGameId(record.getGameId());
+            response.setGameId(record.getId());
             response.setPlayer1(record.getPlayer1Username());
             response.setPlayer2(record.getPlayer2Username());
-            response.setStatus(record.getStatus());
-            response.setFinished("FINISHED".equals(record.getStatus()));
+            response.setStatus("FINISHED");
+            response.setFinished(true);
             response.setWinner(record.getWinnerUsername());
             return response;
         }
@@ -160,9 +171,13 @@ public class GameService {
         return buildGameSummary(gameId, domainGame, username);
     }
 
+    /**
+     * Procesa un disparo de artilleria naval y sincroniza el contraataque de la IA.
+     * Devuelve en una sola respuesta integral el estado completo del combate (1 Disparo = 1 Peticion).
+     */
     @Transactional
     public ShotResponse processShot(String gameId, String username, int row, int col) {
-        Game domainGame = activeSessions.get(gameId);
+        Game domainGame = activeSessions.getIfPresent(gameId);
         if (domainGame == null) {
             throw new ResourceNotFoundException("Active game not found with ID: " + gameId);
         }
@@ -176,21 +191,21 @@ public class GameService {
             throw new IllegalStateException("It is not your turn");
         }
 
-        GameSessionMetadata metadata = sessionMetadata.get(gameId);
+        GameSessionMetadata metadata = sessionMetadata.getIfPresent(gameId);
         boolean isGuest = metadata != null && metadata.isGuest();
 
-        // 1. Ejecutar disparo del jugador humano
+        List<MoveHistoryDto> newLogs = new ArrayList<>();
+
+        // 1. Ejecutar disparo del jugador humano (en memoria)
         String playerResult = domainGame.executeShot(row, col);
 
         if ("Already attacked".equals(playerResult) || "Coordinates out of bounds".equals(playerResult)) {
             throw new IllegalArgumentException(playerResult);
         }
 
-        if (!isGuest) {
-            moveRecordRepository.save(new MoveRecordEntity(gameId, effectiveUsername, row, col, playerResult));
-        }
         if (metadata != null) {
-            metadata.addMove(effectiveUsername, row, col, playerResult);
+            MoveHistoryDto playerMove = metadata.addMove(effectiveUsername, row, col, playerResult);
+            newLogs.add(playerMove);
         }
 
         ShotResponse response = new ShotResponse();
@@ -199,92 +214,100 @@ public class GameService {
         response.setPlayerCol(col);
         response.setPlayerShotResult(playerResult);
 
-        // Comprobar si el disparo humano sentencio la partida
-        if (domainGame.isFinished()) {
-            finalizeGame(gameId, domainGame, response);
-            response.setFinished(true);
-            response.setWinner(domainGame.getWinner().getName());
-            response.setCurrentTurn(null);
-            response.setAiCounterAttacked(false);
-            return response;
-        }
+        // 2. Ejecutar contraataque de la IA si la partida no ha concluido
+        if (!domainGame.isFinished()) {
+            IPlayer opponent = domainGame.getPlayer2();
+            if (opponent instanceof AiPlayer aiPlayer) {
+                Board playerBoard = domainGame.getBoard1();
+                int[] aiCoords = aiPlayer.takeTurn(playerBoard.getFogOfWarView());
+                if (aiCoords != null) {
+                    String aiResult = domainGame.executeShot(aiCoords[0], aiCoords[1]);
+                    response.setAiCounterAttacked(true);
+                    response.setAiRow(aiCoords[0]);
+                    response.setAiCol(aiCoords[1]);
+                    response.setAiShotResult(aiResult);
 
-        // 2. Si la partida continua y el oponente es IA, realizar contraataque automatico
-        IPlayer opponent = domainGame.getPlayer2();
-        if (opponent instanceof AiPlayer aiPlayer) {
-            Board playerBoard = domainGame.getBoard1();
-            int[] aiCoords = aiPlayer.takeTurn(playerBoard.getFogOfWarView());
-
-            String aiResult = domainGame.executeShot(aiCoords[0], aiCoords[1]);
-            if (!isGuest) {
-                moveRecordRepository.save(new MoveRecordEntity(gameId, aiPlayer.getName(), aiCoords[0], aiCoords[1], aiResult));
-            }
-            if (metadata != null) {
-                metadata.addMove(aiPlayer.getName(), aiCoords[0], aiCoords[1], aiResult);
-            }
-
-            response.setAiCounterAttacked(true);
-            response.setAiRow(aiCoords[0]);
-            response.setAiCol(aiCoords[1]);
-            response.setAiShotResult(aiResult);
-
-            if (domainGame.isFinished()) {
-                finalizeGame(gameId, domainGame, response);
-                response.setFinished(true);
-                response.setWinner(domainGame.getWinner().getName());
-                response.setCurrentTurn(null);
-                return response;
+                    if (metadata != null) {
+                        MoveHistoryDto aiMove = metadata.addMove(aiPlayer.getName(), aiCoords[0], aiCoords[1], aiResult);
+                        newLogs.add(aiMove);
+                    }
+                }
             }
         }
 
-        response.setFinished(false);
+        // 3. Evaluar estado de fin de batalla naval
+        boolean isFinished = domainGame.isFinished();
+        response.setFinished(isFinished);
+        response.setWinner(domainGame.getWinner() != null ? domainGame.getWinner().getName() : null);
         response.setCurrentTurn(domainGame.getCurrentPlayerName());
+
+        // Inyectar estado de tableros y logs para resolver en un unico viaje de red
+        response.setMyFleetGrid(domainGame.getBoard1().getOwnerView());
+        response.setEnemyFogGrid(domainGame.getBoard2().getFogOfWarView());
+        response.setNewLogs(newLogs);
+
+        if (isFinished) {
+            finalizeGameSession(gameId, domainGame, metadata, isGuest, response);
+        }
+
         return response;
     }
 
-    private void finalizeGame(String gameId, Game domainGame, ShotResponse response) {
+    private void finalizeGameSession(String gameId, Game domainGame, GameSessionMetadata metadata,
+                                     boolean isGuest, ShotResponse response) {
+        LocalDateTime createdAt = metadata != null ? metadata.getCreatedAt() : LocalDateTime.now();
         LocalDateTime finishedAt = LocalDateTime.now();
-        GameSessionMetadata metadata = sessionMetadata.get(gameId);
-        boolean isGuest = metadata != null && metadata.isGuest();
+        long durationSeconds = Math.max(1, Duration.between(createdAt, finishedAt).getSeconds());
 
-        GameRecordEntity record = !isGuest ? gameRecordRepository.findById(gameId).orElse(null) : null;
+        String humanUsername = metadata != null ? metadata.getUsername() : "Guest";
+        String difficulty = metadata != null ? metadata.getDifficulty() : "NORMAL";
 
-        long durationSeconds = 1L;
-        String difficulty = "EASY";
-        LocalDateTime startedAt = (metadata != null) ? metadata.getCreatedAt() : (record != null ? record.getCreatedAt() : null);
-        if (startedAt != null) {
-            durationSeconds = Math.max(1L, Duration.between(startedAt, finishedAt).getSeconds());
-        }
-        if (metadata != null) {
-            difficulty = metadata.getDifficulty();
-        } else if (record != null && record.getAiDifficulty() != null) {
-            difficulty = record.getAiDifficulty().toUpperCase();
-        }
+        int humanMoves = 0;
+        int enemyShipsDestroyed = 0;
+        int enemyHullPointsDestroyed = 0;
 
-        double diffMult = calculateDifficultyMultiplier(difficulty);
-        String humanUsername = domainGame.getPlayer1().getName();
-        boolean isVictory = domainGame.getWinner() != null && domainGame.getWinner().getName().equals(humanUsername);
-        int humanMoves = domainGame.getPlayer1().getMovements().size();
-
-        long points = 0L;
-        String resultString = isVictory ? "VICTORY" : "DEFEAT";
-
-        if (isVictory) {
-            long shotsBonus = Math.max(0L, (60 - humanMoves) * 25L);
-            long timeBonus = Math.max(0L, (180 - durationSeconds) * 5L);
-            points = Math.round(((1000 + shotsBonus) * diffMult) + timeBonus);
-        } else {
-            // Puntos de consolacion de honor en derrota completa (minimo 4 movimientos para evitar abandonos)
-            if (humanMoves >= 4) {
-                long consolationSum = 0L;
-                for (Ship ship : domainGame.getBoard2().getShips()) {
-                    if (!ship.isAlive()) {
-                        consolationSum += (long) ship.getLength() * 50L;
-                    }
+        if (domainGame.getBoard2() != null && domainGame.getBoard2().getShips() != null) {
+            for (Ship ship : domainGame.getBoard2().getShips()) {
+                if (!ship.isAlive()) {
+                    enemyShipsDestroyed++;
+                    enemyHullPointsDestroyed += getShipPointsValue(ship);
                 }
-                points = Math.round(consolationSum * diffMult);
             }
         }
+
+        if (metadata != null) {
+            for (MoveHistoryDto move : metadata.getInMemoryMoves()) {
+                if (humanUsername.equals(move.getPlayerUsername())) {
+                    humanMoves++;
+                }
+            }
+        }
+        if (humanMoves == 0) humanMoves = 1;
+
+        boolean humanWon = domainGame.getWinner() != null && domainGame.getWinner().getName().equals(humanUsername);
+
+        long points;
+        double diffMultiplier = switch (difficulty.toUpperCase()) {
+            case "HARD" -> 1.5;
+            case "NORMAL" -> 1.0;
+            case "EASY" -> 0.75;
+            default -> 1.0;
+        };
+
+        if (humanWon) {
+            long bonusShots = Math.max(0, 100 - humanMoves) * 10L;
+            long bonusTime = Math.max(0, 300 - durationSeconds) * 2L;
+            points = Math.round(((1000 + bonusShots) * diffMultiplier) + bonusTime);
+        } else {
+            // Puntos de consolacion anti-farming en derrota (minimo 4 movimientos y destruccion mutua)
+            if (humanMoves >= 4 && enemyShipsDestroyed > 0) {
+                points = Math.round(enemyHullPointsDestroyed * diffMultiplier);
+            } else {
+                points = 0L;
+            }
+        }
+
+        String resultString = humanWon ? "VICTORY" : "DEFEAT";
 
         if (metadata != null) {
             metadata.setFinished(true);
@@ -295,27 +318,29 @@ public class GameService {
             metadata.setWinnerUsername(domainGame.getWinner() != null ? domainGame.getWinner().getName() : null);
         }
 
-        if (!isGuest) {
-            if (record != null) {
-                record.setStatus("FINISHED");
-                record.setWinnerUsername(domainGame.getWinner() != null ? domainGame.getWinner().getName() : null);
-                record.setFinishedAt(finishedAt);
-                record.setDurationSeconds(durationSeconds);
-                record.setMovesCount(humanMoves);
-                record.setPoints(points);
-                gameRecordRepository.save(record);
+        // Si el oficial no es invitado, persistir inmediatamente (exactamente 1 INSERT)
+        if (!isGuest && !"Guest".equalsIgnoreCase(humanUsername)) {
+            Long userId = null;
+            var userOpt = userRepository.findByUsername(humanUsername);
+            if (userOpt.isPresent()) {
+                userId = userOpt.get().getId();
             }
 
-            LeaderboardScoreEntity scoreEntity = new LeaderboardScoreEntity(
-                    humanUsername,
-                    points,
+            GameRecordEntity gameRecord = new GameRecordEntity(
                     gameId,
+                    userId,
+                    humanUsername,
+                    domainGame.getPlayer2().getName(),
                     difficulty,
                     durationSeconds,
                     humanMoves,
-                    resultString
+                    resultString,
+                    points
             );
-            leaderboardScoreRepository.save(scoreEntity);
+            gameRecord.setCreatedAt(createdAt);
+            gameRecordRepository.save(gameRecord);
+
+            leaderboardService.invalidateLeaderboardCache();
         }
 
         if (response != null) {
@@ -325,9 +350,13 @@ public class GameService {
         }
     }
 
+    /**
+     * Reclama los puntos de una partida jugada en modo invitado y los consolida en la cuenta del oficial.
+     * Ejecuta exactamente 1 INSERT en server_games e invalida la cache de clasificaciones.
+     */
     @Transactional
     public MatchScoreResponse claimGame(String gameId, String authenticatedUsername) {
-        GameSessionMetadata metadata = sessionMetadata.get(gameId);
+        GameSessionMetadata metadata = sessionMetadata.getIfPresent(gameId);
         if (metadata == null) {
             throw new ResourceNotFoundException("Active or recent game session not found for ID: " + gameId);
         }
@@ -336,7 +365,7 @@ public class GameService {
             throw new IllegalStateException("Game is still in progress. Complete the battle before claiming points.");
         }
 
-        if (metadata.isClaimed() || leaderboardScoreRepository.existsByGameId(gameId)) {
+        if (metadata.isClaimed() || gameRecordRepository.existsById(gameId)) {
             throw new IllegalStateException("Game " + gameId + " has already been claimed.");
         }
 
@@ -346,69 +375,53 @@ public class GameService {
         String winner = "Guest".equalsIgnoreCase(metadata.getWinnerUsername()) ?
                 authenticatedUsername : metadata.getWinnerUsername();
 
+        Long userId = null;
+        var userOpt = userRepository.findByUsername(authenticatedUsername);
+        if (userOpt.isPresent()) {
+            userId = userOpt.get().getId();
+        }
+
         GameRecordEntity gameRecord = new GameRecordEntity(
                 gameId,
+                userId,
                 authenticatedUsername,
                 "AI-" + metadata.getDifficulty(),
-                "SOLO_AI",
-                metadata.getDifficulty(),
-                "FINISHED"
-        );
-        gameRecord.setWinnerUsername(winner);
-        gameRecord.setCreatedAt(metadata.getCreatedAt());
-        gameRecord.setFinishedAt(LocalDateTime.now());
-        gameRecord.setDurationSeconds(metadata.getFinalDurationSeconds());
-        gameRecord.setMovesCount(metadata.getFinalMovesCount());
-        gameRecord.setPoints(metadata.getFinalPoints());
-        gameRecordRepository.save(gameRecord);
-
-        LeaderboardScoreEntity scoreEntity = new LeaderboardScoreEntity(
-                authenticatedUsername,
-                metadata.getFinalPoints(),
-                gameId,
                 metadata.getDifficulty(),
                 metadata.getFinalDurationSeconds(),
                 metadata.getFinalMovesCount(),
-                metadata.getFinalResult()
+                metadata.getFinalResult(),
+                metadata.getFinalPoints()
         );
-        leaderboardScoreRepository.save(scoreEntity);
+        gameRecord.setCreatedAt(metadata.getCreatedAt());
+        gameRecordRepository.save(gameRecord);
 
-        // Persistir movimientos acumulados en memoria al reclamar la partida
-        for (MoveHistoryDto move : metadata.getInMemoryMoves()) {
-            String mover = "Guest".equalsIgnoreCase(move.getPlayerUsername()) ? authenticatedUsername : move.getPlayerUsername();
-            moveRecordRepository.save(new MoveRecordEntity(gameId, mover, move.getRow(), move.getCol(), move.getResult()));
-        }
+        leaderboardService.invalidateLeaderboardCache();
 
         return new MatchScoreResponse(
-                scoreEntity.getId(),
-                authenticatedUsername,
-                scoreEntity.getPoints(),
                 gameId,
-                scoreEntity.getDifficulty(),
-                scoreEntity.getDurationSeconds(),
-                scoreEntity.getMovesCount(),
-                scoreEntity.getResult(),
-                scoreEntity.getRecordedAt()
+                authenticatedUsername,
+                metadata.getFinalPoints(),
+                metadata.getDifficulty(),
+                metadata.getFinalDurationSeconds(),
+                metadata.getFinalMovesCount(),
+                metadata.getFinalResult(),
+                metadata.getCreatedAt()
         );
     }
 
-    private double calculateDifficultyMultiplier(String difficulty) {
-        if (difficulty == null) return 1.0;
-        return switch (difficulty.toUpperCase()) {
-            case "HARD", "EXPERT", "DIFICIL" -> 2.5;
-            case "NORMAL", "MEDIUM" -> 1.5;
-            default -> 1.0;
-        };
+    public GameSessionMetadata getSessionMetadata(String gameId) {
+        return sessionMetadata.getIfPresent(gameId);
     }
 
-    public List<MoveHistoryDto> getGameHistory(String gameId) {
-        GameSessionMetadata metadata = sessionMetadata.get(gameId);
-        if (metadata != null && !metadata.getInMemoryMoves().isEmpty()) {
-            return metadata.getInMemoryMoves();
-        }
-        return moveRecordRepository.findByGameIdOrderByTimestampAsc(gameId).stream()
-                .map(m -> new MoveHistoryDto(m.getId(), m.getGameId(), m.getPlayerUsername(), m.getRow(), m.getCol(), m.getResult(), m.getTimestamp()))
-                .toList();
+    private int getShipPointsValue(Ship ship) {
+        if (ship == null) return 0;
+        return switch (ship.getLength()) {
+            case 5 -> 250; // Carrier
+            case 4 -> 200; // Battleship
+            case 3 -> 150; // Submarine
+            case 2 -> 100; // Patrol Boat
+            default -> ship.getLength() * 40;
+        };
     }
 
     private GameSummaryResponse buildGameSummary(String gameId, Game game, String username) {

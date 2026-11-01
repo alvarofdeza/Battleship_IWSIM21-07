@@ -90,13 +90,11 @@ class GameControllerIntegrationTest {
                 .andExpect(jsonPath("$.playerRow").value(0))
                 .andExpect(jsonPath("$.playerCol").value(0))
                 .andExpect(jsonPath("$.playerShotResult").isString())
-                .andExpect(jsonPath("$.aiCounterAttacked").value(true));
-
-        // 3. Consultar historial de disparos
-        mockMvc.perform(get("/api/v1/games/" + gameId + "/history")
-                        .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2)); // Disparo humano + contraataque IA
+                .andExpect(jsonPath("$.aiCounterAttacked").value(true))
+                .andExpect(jsonPath("$.myFleetGrid").isArray())
+                .andExpect(jsonPath("$.enemyFogGrid").isArray())
+                .andExpect(jsonPath("$.newLogs").isArray())
+                .andExpect(jsonPath("$.newLogs.length()").value(2));
     }
 
     @Test
@@ -194,13 +192,10 @@ class GameControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(shotReq)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(gameId));
-
-        // 3. Consultar historial de disparos del invitado (debe devolver los 2 movimientos en memoria)
-        mockMvc.perform(get("/api/v1/games/" + gameId + "/history"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].playerUsername").value("Guest"));
+                .andExpect(jsonPath("$.gameId").value(gameId))
+                .andExpect(jsonPath("$.newLogs").isArray())
+                .andExpect(jsonPath("$.newLogs.length()").value(2))
+                .andExpect(jsonPath("$.newLogs[0].playerUsername").value("Guest"));
     }
 
     @Test

@@ -239,6 +239,24 @@ erDiagram
 | Consulta de Rankings (`GET /leaderboard/*`) | < 30 ms (con cache) | 0 consultas (hit en cache Caffeine) | Respuesta JSON optimizada |
 | Memoria RAM en Reposo (Backend Docker) | <= 280 MB | - | Margen seguro dentro de 512 MB de Render |
 
+### Instrucciones de Ejecucion de Pruebas de Carga con k6
+
+El script de prueba de carga se ubica en `load-tests/combat-load-test.js` y simula a 20 comandantes concurrentes ejecutando combates navales completos con cadencia reglamentaria de 2 segundos entre salvas:
+
+1. **Instalacion de k6:** Instalar mediante `winget install k6` (Windows), `brew install k6` (macOS) o mediante binario oficial desde [k6.io](https://k6.io/).
+2. **Ejecucion local contra el backend:**
+   ```bash
+   k6 run load-tests/combat-load-test.js
+   ```
+3. **Ejecucion parametrizada contra produccion o staging:**
+   ```bash
+   k6 run -e TARGET_URL=https://api.fleetgrid.me/api/v1 load-tests/combat-load-test.js
+   ```
+4. **Criterios estrictos de aprobacion (Thresholds):**
+   - `http_req_duration`: Percentil 95 (`p(95)`) inferior a 200 ms.
+   - `http_req_failed`: Tasa de error inferior al 1% (`rate < 0.01`).
+   - `combat_success_rate`: Partidas resueltas satisfactoriamente superior al 99%.
+
 ---
 
 ## 9. Despliegue Git y Control de Commits

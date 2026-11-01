@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import {
   Crosshair,
@@ -14,16 +14,19 @@ import {
   Award,
   CheckCircle2,
   Trophy,
+  Loader2,
 } from 'lucide-react';
 
 import { Header } from '@/components/Header';
-import { AuthModal } from '@/components/AuthModal';
 import { FleetPlacement } from '@/components/FleetPlacement';
 import { CombatGrid } from '@/components/CombatGrid';
 import { TelemetryLog } from '@/components/TelemetryLog';
-import { LeaderboardModal } from '@/components/LeaderboardModal';
-import { ProfileModal } from '@/components/ProfileModal';
 import { useFocusTrap } from '@/lib/useFocusTrap';
+
+// Importacion dinamica de modales para no sobrecargar el bundle JavaScript inicial
+const AuthModal = dynamic(() => import('@/components/AuthModal').then((mod) => mod.AuthModal), { ssr: false });
+const LeaderboardModal = dynamic(() => import('@/components/LeaderboardModal').then((mod) => mod.LeaderboardModal), { ssr: false });
+const ProfileModal = dynamic(() => import('@/components/ProfileModal').then((mod) => mod.ProfileModal), { ssr: false });
 
 import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
@@ -73,6 +76,7 @@ export default function Home() {
   // Pestana activa en dispositivos moviles: Ataque o Defensa
   const [mobileTab, setMobileTab] = useState<'ATTACK' | 'DEFENSE'>('ATTACK');
   const [showAiHeatmap, setShowAiHeatmap] = useState<boolean>(false);
+  const [isColdStarting, setIsColdStarting] = useState<boolean>(false);
 
   // Carga de estadisticas de carrera del oficial
   const fetchUserStats = useCallback(async () => {
@@ -82,6 +86,16 @@ export default function Home() {
     } catch {
       setUserStats(null);
     }
+  }, []);
+
+  // Deteccion de arranque en frio del backend (latencia > 3 segundos)
+  useEffect(() => {
+    const handleColdStart = (e: Event) => {
+      const custom = e as CustomEvent<{ isSlow: boolean }>;
+      setIsColdStarting(custom.detail.isSlow);
+    };
+    window.addEventListener('fleetgrid:coldstart', handleColdStart);
+    return () => window.removeEventListener('fleetgrid:coldstart', handleColdStart);
   }, []);
 
   // Verificacion de sesion en el montaje del componente
@@ -179,14 +193,20 @@ export default function Home() {
         setLiveAnnouncement(`Artillery missed, splash in water at sector ${targetCoord}.`);
       }
 
-      // Actualizar estado del juego e historial
-      const [updatedSummary, updatedHistory] = await Promise.all([
-        api.getGame(game.gameId),
-        api.getGameHistory(game.gameId),
-      ]);
+      // Actualizar estado del juego e historial directamente desde la respuesta integral (1 disparo = 1 peticion)
+      setGame(prev => prev ? {
+        ...prev,
+        status: shot.finished ? 'FINISHED' : 'IN_PROGRESS',
+        finished: shot.finished,
+        winner: shot.winner,
+        currentTurn: shot.currentTurn || prev.currentTurn,
+        myFleetGrid: shot.myFleetGrid || prev.myFleetGrid,
+        enemyFogGrid: shot.enemyFogGrid || prev.enemyFogGrid,
+      } : prev);
 
-      setGame(updatedSummary);
-      setLogs(updatedHistory);
+      if (shot.newLogs && shot.newLogs.length > 0) {
+        setLogs(prev => [...prev, ...shot.newLogs!]);
+      }
 
       // Comprobar fin de la batalla naval
       if (shot.finished) {
@@ -194,16 +214,18 @@ export default function Home() {
         const humanWon = shot.winner === game.player1;
         setIsVictory(humanWon);
         setFinalPoints(shot.points || 0);
-        setFinalMoves(shot.movesCount || updatedHistory.length);
+        setFinalMoves(shot.movesCount || (logs.length + (shot.newLogs?.length || 0)));
         setFinalDuration(shot.durationSeconds || 0);
 
         if (humanWon) {
           sounds.playVictoryFanfare();
-          confetti({
-            particleCount: 130,
-            spread: 85,
-            origin: { y: 0.6 },
-            colors: ['#00ff66', '#00e5ff', '#ffaa00'],
+          import('canvas-confetti').then((mod) => {
+            mod.default({
+              particleCount: 130,
+              spread: 85,
+              origin: { y: 0.6 },
+              colors: ['#00ff66', '#00e5ff', '#ffaa00'],
+            });
           });
           toast.success('DECISIVE NAVAL VICTORY! ENEMY FLEET ANNIHILATED!');
         } else {
@@ -315,6 +337,16 @@ export default function Home() {
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
           {liveAnnouncement}
         </div>
+
+        {/* Alerta de arranque en frio del servidor PaaS (> 3 segundos) */}
+        {isColdStarting && (
+          <div className="mb-4 bg-[#ffaa00]/15 border-2 border-[#ffaa00] text-[#ffaa00] p-3 text-xs flex items-center justify-center gap-2 animate-pulse font-mono tracking-wider bezel-tactical shadow-[0_0_15px_rgba(255,170,0,0.3)]">
+            <Loader2 className="w-4 h-4 animate-spin shrink-0 text-[#ffaa00]" />
+            <span className="font-bold">
+              WAKING UP FLEETGRID COMMAND MAINFRAME... SATELLITE CONNECTION WILL ESTABLISH IN ~30 SECONDS
+            </span>
+          </div>
+        )}
 
         {/* Fase 1: Fondeadero y despliegue tactico de flota */}
         {phase === 'DEPLOYMENT' && (

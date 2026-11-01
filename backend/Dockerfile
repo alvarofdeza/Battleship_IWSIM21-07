@@ -43,7 +43,7 @@ USER appuser
 # Expose default HTTP port
 EXPOSE 8080
 
-# Configure container-aware JVM memory management and security entropy
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+# Configure lightweight single-core JVM memory bounds tuned for Render 512 MB container
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:+UseSerialGC -Xmx320m -Xms64m -XX:MaxMetaspaceSize=96m -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
