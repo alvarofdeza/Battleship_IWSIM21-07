@@ -289,6 +289,12 @@ FleetGrid preserva total independencia de proveedores de nube e infraestructura 
 | **Namecheap** | Registrador de Dominio y DNS | Registros estandar DNS (A, CNAME, TXT) | Cambiar los servidores de nombres (Nameservers) hacia Cloudflare DNS, Route53 o Porkbun. |
 | **Vercel Metrics** | Telemetria y rendimiento web | Componente `WebMetrics.tsx` aislado | Reemplazar los componentes de Vercel por Cloudflare Web Analytics o instancia autoalojada de Umami. |
 
+> [!TIP]
+> **Sustitucion de Vercel Metrics en < 10 lineas:** En `frontend/src/components/WebMetrics.tsx`, reemplaza el retorno del componente por el script de tu proveedor:
+> - **Umami:** `<Script async src="https://tu-umami.com/script.js" data-website-id="TU_WEBSITE_ID" />`
+> - **Cloudflare:** `<Script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "TU_TOKEN"}' />`
+> No se requiere alterar ningun otro componente, layout ni ruta de la plataforma.
+
 > [!NOTE]
 > **Dominio y Renovacion:** El dominio `fleetgrid.me` fue registrado via Namecheap a traves del paquete GitHub Student Developer Pack (vigencia gratuita de 1 ano, caducidad en octubre de 2027). La renovacion anual estandar se gestiona desde el panel de Namecheap o transfiriendo el dominio a Cloudflare Registrar para precio de coste sin margen.
 

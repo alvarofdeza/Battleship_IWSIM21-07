@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Press_Start_2P, Share_Tech_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { Footer } from '@/components/Footer';
+import { WebMetrics } from '@/components/WebMetrics';
 import './globals.css';
 
 const pixelFont = Press_Start_2P({
@@ -151,6 +152,7 @@ export default function RootLayout({
         <div className="flex-1 flex flex-col">
           {children}
         </div>
+        <WebMetrics />
         <Footer />
         <Toaster
           position="top-right"
