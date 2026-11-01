@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RotateCw, Shuffle, Trash2, Crosshair, Anchor, ShieldCheck } from 'lucide-react';
+import { RotateCw, Shuffle, Trash2, Crosshair, Anchor, ShieldCheck, Radio } from 'lucide-react';
 import { FLEET_SHIPS, PlacedShip, ShipDefinition, AiDifficulty } from '@/lib/types';
 import { PixelShip } from './PixelShips';
 import { sounds } from '@/lib/sound';
@@ -40,6 +40,15 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
   const [hoverCell, setHoverCell] = useState<{ r: number; c: number } | null>(null);
   const [difficulty, setDifficulty] = useState<AiDifficulty>('HARD');
   const [focusedCell, setFocusedCell] = useState<{ r: number; c: number }>({ r: 0, c: 0 });
+  const [coldStartNotice, setColdStartNotice] = useState(false);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => {
+      setColdStartNotice(true);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handleGridCellKeyDown = (e: React.KeyboardEvent, r: number, c: number) => {
     let nextR = r;
@@ -417,7 +426,10 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
           {/* Boton de Accion con Soporte para Modo Invitado y Modo Autenticado */}
           <div className="space-y-2">
             <button
-              onClick={() => onStartGame(placedShips, difficulty)}
+              onClick={() => {
+                setColdStartNotice(false);
+                onStartGame(placedShips, difficulty);
+              }}
               disabled={!allPlaced || loading}
               className={`w-full py-3.5 font-['Press_Start_2P'] text-[10px] sm:text-[11px] tracking-widest bezel-tactical-btn font-bold flex items-center justify-center gap-2 uppercase transition-all ${
                 allPlaced
@@ -440,6 +452,19 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
                 `DEPLOY ALL SHIPS (${4 - placedShips.length} LEFT)`
               )}
             </button>
+
+            {/* Render Cold-Start Standby Notification */}
+            {loading && coldStartNotice && (
+              <div className="p-2.5 border border-[#ffaa00] bg-[#ffaa00]/10 text-[#ffaa00] text-[11px] font-mono text-center space-y-1 animate-pulse bezel-tactical">
+                <div className="font-bold flex items-center justify-center gap-1.5">
+                  <Radio className="w-3.5 h-3.5 animate-spin" />
+                  <span>SATELLITE LINK &bull; ADMIRALTY BACKEND WAKING UP</span>
+                </div>
+                <div className="text-[10px] text-[#8fa5bf] leading-relaxed">
+                  Free cloud instance is spinning up from standby. Initial connection may take 20-40 seconds. Standing by for ordnance sync...
+                </div>
+              </div>
+            )}
 
             {!isLoggedIn && (
               <p className="text-[10px] text-center font-mono text-[#8fa5bf]">

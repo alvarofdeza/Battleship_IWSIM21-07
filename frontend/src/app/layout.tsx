@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Press_Start_2P, Share_Tech_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
+import { Footer } from '@/components/Footer';
 import './globals.css';
 
 const pixelFont = Press_Start_2P({
@@ -35,7 +36,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${pixelFont.variable} ${tacticalFont.variable} dark`}>
       <body className="bg-[#050b14] text-[#e2ecf7] min-h-dvh flex flex-col justify-between selection:bg-[#00ff66] selection:text-black antialiased">
-        {children}
+        <div className="flex-1 flex flex-col">
+          {children}
+        </div>
+        <Footer />
         <Toaster
           position="top-right"
           theme="dark"
