@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RotateCw, Shuffle, Trash2, Crosshair, Anchor, ShieldCheck, Lock } from 'lucide-react';
+import { RotateCw, Shuffle, Trash2, Crosshair, Anchor, ShieldCheck } from 'lucide-react';
 import { FLEET_SHIPS, PlacedShip, ShipDefinition, AiDifficulty } from '@/lib/types';
 import { PixelShip } from './PixelShips';
 import { sounds } from '@/lib/sound';
@@ -412,7 +412,18 @@ export const FleetPlacement: React.FC<FleetPlacementProps> = ({
 
             {!isLoggedIn && (
               <p className="text-[10px] text-center font-mono text-[#8fa5bf]">
-                Playing as Guest Commander. You can claim and record your citation in the Admiralty Roll after battle.
+                Playing as Guest Commander. You can claim your citation after battle or{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    onOpenAuth();
+                  }}
+                  className="text-[#00ff66] underline hover:text-[#52ff99] transition-colors"
+                >
+                  enlist now
+                </button>
+                .
               </p>
             )}
           </div>

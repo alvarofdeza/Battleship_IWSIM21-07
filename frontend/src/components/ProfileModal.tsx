@@ -3,17 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
-  User,
   Shield,
   Trophy,
   History,
   Lock,
   CheckCircle2,
-  AlertCircle,
-  Swords,
-  Crosshair,
-  Timer,
   KeyRound,
+  RefreshCw,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { sounds } from '@/lib/sound';
@@ -47,24 +43,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  const fetchProfileData = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const [s, best, recent] = await Promise.all([
-        api.getMyStats(),
-        api.getMyMatches(),
-        api.getMyRecentMatches(),
-      ]);
-      setStats(s);
-      setBestMatches(best);
-      setRecentMatches(recent);
-    } catch {
-      // Si la carga falla o es invitado
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     if (!isOpen) return;
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -77,10 +55,40 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchProfileData();
-    }
-  }, [isOpen, fetchProfileData]);
+    if (!isOpen) return;
+    let isCancelled = false;
+
+    React.startTransition(() => {
+      setLoading(true);
+    });
+
+    const loadProfileData = async () => {
+      try {
+        const [s, best, recent] = await Promise.all([
+          api.getMyStats(),
+          api.getMyMatches(),
+          api.getMyRecentMatches(),
+        ]);
+        if (!isCancelled) {
+          setStats(s);
+          setBestMatches(best);
+          setRecentMatches(recent);
+        }
+      } catch {
+        // En caso de incidencia en red o sesion expirada
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProfileData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -259,7 +267,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#122340]">
-                  {bestMatches.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-6 text-[#38bdf8] font-mono text-xs">
+                        <span className="inline-flex items-center gap-2 animate-pulse">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>SYNCHRONIZING SERVICE CITATIONS...</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ) : bestMatches.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-6 text-[#536780]">
                         NO RECORDS REGISTERED YET. ENGAGE IN COMBAT TO LOG CITATIONS.
@@ -316,7 +333,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#122340]">
-                  {recentMatches.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-6 text-[#38bdf8] font-mono text-xs">
+                        <span className="inline-flex items-center gap-2 animate-pulse">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>SYNCHRONIZING SERVICE CITATIONS...</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ) : recentMatches.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-6 text-[#536780]">
                         NO RECENT MATCHES LOGGED.

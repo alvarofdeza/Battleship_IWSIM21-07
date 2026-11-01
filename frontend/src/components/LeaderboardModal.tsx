@@ -27,7 +27,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
   const [topOfficers, setTopOfficers] = useState<PlayerRankingItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchRankings = React.useCallback(async () => {
+  const handleRefresh = async () => {
     setLoading(true);
     try {
       const [matches, officers] = await Promise.all([
@@ -37,13 +37,12 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
       setTopMatches(matches);
       setTopOfficers(officers);
     } catch {
-      // Fallback si la API no estuviera accesible
       setTopMatches([]);
       setTopOfficers([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,10 +56,41 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchRankings();
-    }
-  }, [isOpen, fetchRankings]);
+    if (!isOpen) return;
+    let isCancelled = false;
+
+    React.startTransition(() => {
+      setLoading(true);
+    });
+
+    const loadRankings = async () => {
+      try {
+        const [matches, officers] = await Promise.all([
+          api.getTopMatches(),
+          api.getTopPlayers(),
+        ]);
+        if (!isCancelled) {
+          setTopMatches(matches);
+          setTopOfficers(officers);
+        }
+      } catch {
+        if (!isCancelled) {
+          setTopMatches([]);
+          setTopOfficers([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadRankings();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -138,7 +168,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
           <button
             onClick={() => {
               sounds.playClick();
-              fetchRankings();
+              handleRefresh();
             }}
             disabled={loading}
             className="text-[#8fa5bf] hover:text-[#00ff66] p-1.5 transition-colors disabled:opacity-50"
