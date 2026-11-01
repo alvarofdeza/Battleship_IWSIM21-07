@@ -64,19 +64,22 @@ A continuacion se detallan las configuraciones operativas aplicadas en cada plat
 * **Namecheap (Registrador de Dominio y DNS Avanzado):**
   - **Dominio registrado:** `fleetgrid.me` (activado mediante GitHub Student Developer Pack con vigencia hasta 2027).
   - **Registros DNS en Host Records (Advanced DNS):**
-    - Registro **A**: Host `@` apuntando a `76.76.21.21` (Direccion IP Anycast de Vercel para el dominio apex canonico).
+    - Registro **A**: Host `@` apuntando a `216.198.79.1` (Direccion IP Anycast recomendada por Vercel para expansion de rango; `76.76.21.21` legacy tambien soportada).
     - Registro **CNAME**: Host `www` apuntando a `cname.vercel-dns.com.` (Redireccion HTTP 301 automatica de `www.fleetgrid.me` a `fleetgrid.me`).
     - Registro **CNAME**: Host `api` apuntando a `battleship-backend-ys61.onrender.com.` (Enrutamiento del subdominio de la API hacia el Web Service de Render).
     - Registro **CNAME (DKIM 1)**: Host `brevo1._domainkey` apuntando a `b1.fleetgrid-me.dkim.brevo.com.` (Firma digital de correo).
     - Registro **CNAME (DKIM 2)**: Host `brevo2._domainkey` apuntando a `b2.fleetgrid-me.dkim.brevo.com.` (Firma digital de correo).
     - Registro **TXT**: Host `@` con valor `google-site-verification=...` (Verificacion de propiedad de dominio en Google Search Console).
-  - **Mail Settings (Email Forwarding):** Redireccion de cortesia configurada desde `hello@fleetgrid.me` (Reply-To oficial) hacia el buzon de correo personal del desarrollador.
+  - **Mail Settings (Email Forwarding / Redireccion de Correo):**
+    - Alias **`hello`** reenviando a `afabad1907@gmail.com` (canal oficial de soporte y direccion de respuesta `Reply-To`).
+    - Alias **`security`** reenviando a `afabad1907@gmail.com` (reporte de incidentes y vulnerabilidades segun RFC 9116).
 
 * **Vercel (Hosting del Frontend Web y Edge CDN):**
-  - **Proyecto:** `fleetgrid` enlazado al repositorio GitHub (rama `main`).
+  - **Proyecto:** `battleship-iwsim-21-07` enlazado al repositorio GitHub (rama `main`).
   - **Dominios configurados en Vercel:**
     - `fleetgrid.me`: Dominio de produccion canonico.
     - `www.fleetgrid.me`: Configurado con redireccion 301 automatica permanente hacia `fleetgrid.me`.
+    - `battleship-iwsim-21-07.vercel.app`: Dominio estandar generado por la plataforma Vercel.
   - **Variables de Entorno (Project Settings > Environment Variables):** Guardadas obligatoriamente bajo el tipo **Config** (no Secret, requerido por Vercel para variables con prefijo `NEXT_PUBLIC_` expuestas al cliente web).
 
 * **Render (Hosting del Servidor Backend REST API):**
@@ -93,7 +96,7 @@ A continuacion se detallan las configuraciones operativas aplicadas en cada plat
   - **Dominio autenticado:** `fleetgrid.me` verificado con firmas criptograficas DKIM vinculadas desde Namecheap.
   - **Remitente autorizado:** `noreply@fleetgrid.me` ("FleetGrid Command"), con Reply-To `hello@fleetgrid.me`.
   - **Credenciales API:** Clave de API v3 generada en la seccion **SMTP y API** para despacho seguro por HTTPS en puerto 443 (sin bloqueo de puertos SMTP).
-  - **Subdominio con marca:** Omitido (no requerido para correo transaccional de autenticacion).
+  - **Soporte de Respuesta Directa:** Reenvio hacia buzon personal via Namecheap y capacidad de respuesta saliente como `hello@fleetgrid.me` mediante el servidor SMTP `smtp-relay.brevo.com` (puerto 587 con TLS).
 
 * **Google Search Console y Bing Webmaster Tools (SEO e Indexacion):**
   - **Google Search Console:** Verificacion de propiedad completada por registro DNS TXT. Sitemap enviado y verificado con exito en `sitemap.xml` con las 5 URLs canonicas descubiertas (`/`, `/leaderboard`, `/rules`, `/faq`, `/privacy`).
