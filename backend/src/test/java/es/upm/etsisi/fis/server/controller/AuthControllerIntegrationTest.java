@@ -2,6 +2,7 @@ package es.upm.etsisi.fis.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.upm.etsisi.fis.server.dto.auth.*;
+import es.upm.etsisi.fis.server.util.OtpCryptoUtils;
 import es.upm.etsisi.fis.server.entity.UserEntity;
 import es.upm.etsisi.fis.server.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +35,9 @@ class AuthControllerIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Test
     @DisplayName("Registro exitoso de nuevo usuario devuelve 201 y token JWT")
@@ -247,12 +251,15 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.emailVerified").value(false));
 
-        // 2. Obtener el codigo OTP generado en base de datos
+        // 2. Configurar OTP conocido para validacion en base de datos
         UserEntity user = userRepository.findByUsername("cadet01").orElseThrow();
-        String validOtp = user.getVerificationOtp();
+        user.setOtpHash(OtpCryptoUtils.hashOtp("123456"));
+        user.setOtpPurpose("VERIFY_EMAIL");
+        user.setOtpExpiresAt(java.time.LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
 
         // 3. Verificar con OTP valido
-        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadet01", validOtp);
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadet01", "123456");
         mockMvc.perform(post("/api/v1/auth/verify-email")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(verifyReq)))
@@ -260,10 +267,10 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.emailVerified").value(true))
                 .andExpect(jsonPath("$.token").isString());
 
-        // 4. Comprobar que en base de datos ya consta como verificado
+        // 4. Comprobar que en base de datos ya consta como verificado y OTP purgado
         UserEntity verifiedUser = userRepository.findByUsername("cadet01").orElseThrow();
         org.junit.jupiter.api.Assertions.assertTrue(verifiedUser.isEmailVerified());
-        org.junit.jupiter.api.Assertions.assertNull(verifiedUser.getVerificationOtp());
+        org.junit.jupiter.api.Assertions.assertNull(verifiedUser.getOtpHash());
     }
 
     @Test
@@ -323,7 +330,7 @@ class AuthControllerIntegrationTest {
         user.setOtpExpiresAt(java.time.LocalDateTime.now().minusMinutes(5));
         userRepository.save(user);
 
-        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadetexp", user.getVerificationOtp());
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest("cadetexp", "123456");
         mockMvc.perform(post("/api/v1/auth/verify-email")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(verifyReq)))
@@ -388,7 +395,81 @@ class AuthControllerIntegrationTest {
 
         // Comprobar que en base de datos el OTP fue revocado
         UserEntity user = userRepository.findByUsername("cadetlockout").orElseThrow();
-        org.junit.jupiter.api.Assertions.assertNull(user.getVerificationOtp());
+        org.junit.jupiter.api.Assertions.assertNull(user.getOtpHash());
+    }
+
+    @Test
+    @DisplayName("Solicitud de recuperacion de contrasena para usuario existente devuelve mensaje generico y fija OTP de reset")
+    void testForgotPasswordExistingUserSuccess() throws Exception {
+        ForgotPasswordRequest request = new ForgotPasswordRequest("alvaro@alumnos.upm.es");
+
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("If an account exists")));
+
+        UserEntity user = userRepository.findByEmail("alvaro@alumnos.upm.es").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertNotNull(user.getOtpHash());
+        org.junit.jupiter.api.Assertions.assertEquals("RESET_PASSWORD", user.getOtpPurpose());
+    }
+
+    @Test
+    @DisplayName("Solicitud de recuperacion de contrasena para email inexistente devuelve respuesta identica para evitar enumeracion")
+    void testForgotPasswordNonexistentUserReturnsIdenticalResponse() throws Exception {
+        ForgotPasswordRequest request = new ForgotPasswordRequest("nonexistent_officer@battleship.com");
+
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("If an account exists")));
+    }
+
+    @Test
+    @DisplayName("Restablecimiento exitoso de contrasena con PIN valido actualiza hash y permite iniciar sesion")
+    void testResetPasswordSuccess() throws Exception {
+        // 1. Configurar un usuario exclusivo con OTP de reset
+        UserEntity user = new UserEntity("resettestuser", "resettest@battleship.com", passwordEncoder.encode("oldSecret123"), es.upm.etsisi.fis.server.entity.UserRole.ROLE_USER);
+        user.setOtpHash(OtpCryptoUtils.hashOtp("778899"));
+        user.setOtpPurpose("RESET_PASSWORD");
+        user.setOtpExpiresAt(java.time.LocalDateTime.now().plusMinutes(10));
+        user.setOtpAttempts(0);
+        userRepository.save(user);
+
+        // 2. Ejecutar reset de contrasena
+        ResetPasswordRequest resetReq = new ResetPasswordRequest("resettestuser", "778899", "newBrandPass123");
+        mockMvc.perform(post("/api/v1/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Password has been successfully reset")));
+
+        // 3. Verificar que puede iniciar sesion con la nueva contrasena
+        LoginRequest loginReq = new LoginRequest("resettest@battleship.com", "newBrandPass123");
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("resettestuser"));
+    }
+
+    @Test
+    @DisplayName("Restablecimiento de contrasena con PIN erroneo es rechazado e incrementa intentos")
+    void testResetPasswordInvalidPinFails() throws Exception {
+        UserEntity user = new UserEntity("badpinuser", "badpin@battleship.com", passwordEncoder.encode("oldSecret123"), es.upm.etsisi.fis.server.entity.UserRole.ROLE_USER);
+        user.setOtpHash(OtpCryptoUtils.hashOtp("112233"));
+        user.setOtpPurpose("RESET_PASSWORD");
+        user.setOtpExpiresAt(java.time.LocalDateTime.now().plusMinutes(10));
+        user.setOtpAttempts(0);
+        userRepository.save(user);
+
+        ResetPasswordRequest resetReq = new ResetPasswordRequest("badpinuser", "999999", "newPass456");
+        mockMvc.perform(post("/api/v1/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetReq)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Invalid verification code")));
     }
 
     @Test

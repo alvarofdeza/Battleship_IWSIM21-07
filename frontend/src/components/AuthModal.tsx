@@ -32,14 +32,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onSuccess,
   initialMode = 'LOGIN',
 }) => {
-  const [isRegister, setIsRegister] = useState(initialMode === 'REGISTER');
+  const [viewMode, setViewMode] = useState<'LOGIN' | 'REGISTER' | 'VERIFY' | 'FORGOT' | 'RESET'>(
+    initialMode === 'REGISTER' ? 'REGISTER' : 'LOGIN'
+  );
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Estado para la fase de verificacion OTP
-  const [isVerifying, setIsVerifying] = useState(false);
+  // Estado para la fase de verificacion OTP / Reset PIN
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -117,7 +120,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      if (isRegister) {
+      if (viewMode === 'REGISTER') {
         if (!cleanEmail.includes('@')) {
           toast.error('VALID EMAIL REQUIRED FOR NAVAL DISPATCH');
           setLoading(false);
@@ -136,9 +139,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         await api.register(cleanUsername, cleanEmail, password);
         sounds.playSonarPing();
         toast.success(`MILITARY PIN TRANSMITTED TO ${cleanEmail.toUpperCase()}`);
-        setIsVerifying(true);
+        setOtpDigits(['', '', '', '', '', '']);
+        setViewMode('VERIFY');
         setResendCooldown(60);
-      } else {
+      } else if (viewMode === 'LOGIN') {
         if (!cleanEmail.includes('@')) {
           toast.error('VALID EMAIL REQUIRED FOR SIGN IN');
           setLoading(false);
@@ -209,6 +213,66 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      toast.error('ENTER REGISTERED EMAIL OR CALLSIGN');
+      return;
+    }
+    sounds.playClick();
+    setLoading(true);
+
+    try {
+      const res = await api.forgotPassword(cleanEmail);
+      sounds.playSonarPing();
+      toast.success(res.message || 'RESET DIRECTIVE TRANSMITTED IF ACCOUNT EXISTS');
+      setOtpDigits(['', '', '', '', '', '']);
+      setViewMode('RESET');
+      setResendCooldown(60);
+    } catch (err: unknown) {
+      sounds.playShipSunkAlarm();
+      const msg = err instanceof Error ? err.message : 'TRANSMISSION FAILED';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const pin = otpDigits.join('');
+    if (pin.length !== 6) {
+      toast.error('ENTER COMPLETE 6-DIGIT AUTHORIZATION PIN');
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error('NEW ACCESS CODE MUST BE AT LEAST 6 CHARACTERS');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('ACCESS CODES DO NOT MATCH');
+      return;
+    }
+
+    sounds.playClick();
+    setLoading(true);
+
+    try {
+      const res = await api.resetPassword(email || username, pin, newPassword);
+      sounds.playVictoryFanfare();
+      toast.success(res.message || 'CREDENTIALS UPDATED // SIGN IN TO PROCEED');
+      setPassword(newPassword);
+      setViewMode('LOGIN');
+    } catch (err: unknown) {
+      sounds.playShipSunkAlarm();
+      const msg = err instanceof Error ? err.message : 'RESET FAILED: INVALID PIN OR EXPIRED DIRECTIVE';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
       <div
@@ -234,17 +298,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="flex items-center gap-2 mb-2 text-[#00ff66]">
           <ShieldAlert className="w-5 h-5 shrink-0" />
           <span id="auth-modal-title" className="font-['Press_Start_2P'] text-[11px] tracking-wider glow-radar">
-            {isVerifying ? 'SECURITY OTP VERIFICATION' : 'NAVAL SECURITY CLEARANCE'}
+            {viewMode === 'VERIFY'
+              ? 'SECURITY OTP VERIFICATION'
+              : viewMode === 'FORGOT'
+              ? 'CREDENTIALS RECOVERY'
+              : viewMode === 'RESET'
+              ? 'CONFIGURE NEW ACCESS CODE'
+              : 'NAVAL SECURITY CLEARANCE'}
           </span>
         </div>
 
         <p className="text-xs text-[#8fa5bf] mb-5 font-mono">
-          {isVerifying
+          {viewMode === 'VERIFY'
             ? `Transmission dispatched to ${email || username}. Enter the 6-digit military PIN to authenticate your officer commission.`
+            : viewMode === 'FORGOT'
+            ? 'Provide your registered email address to receive a 6-digit authorization PIN.'
+            : viewMode === 'RESET'
+            ? 'Enter the 6-digit PIN and specify your new clearance password.'
             : 'Enter authorized officer credentials to record victories in the Admiralty mainframe.'}
         </p>
 
-        {isVerifying ? (
+        {viewMode === 'VERIFY' ? (
           /* Step 2: OTP 6-Digit PIN Entry */
           <form onSubmit={handleVerifyOtp} className="space-y-5">
             <div>
@@ -301,11 +375,145 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={() => {
                   sounds.playClick();
-                  setIsVerifying(false);
+                  setViewMode('LOGIN');
                 }}
                 className="text-[#8fa5bf] hover:text-white"
               >
-                &larr; BACK
+                &larr; BACK TO SIGN IN
+              </button>
+            </div>
+          </form>
+        ) : viewMode === 'FORGOT' ? (
+          /* Step 3: Forgot Password Request */
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div>
+              <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
+                Official Registered Email
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="officer@navy.mil"
+                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#ffaa00] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
+                />
+              </div>
+              <span className="text-[10px] text-[#7892b0] font-mono mt-1 block">
+                An authorization PIN will be transmitted to this inbox if registered.
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 px-4 bg-[#ffaa00] text-black font-mono font-bold text-xs tracking-widest hover:bg-[#e69900] transition-colors disabled:opacity-50 bezel-tactical-btn uppercase flex items-center justify-center gap-2"
+            >
+              <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'TRANSMITTING REQUEST...' : 'TRANSMIT RESET PIN'}
+            </button>
+
+            <div className="text-center pt-2 border-t border-[#1a2d4f]">
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setViewMode('LOGIN');
+                }}
+                className="text-xs font-mono text-[#8fa5bf] hover:text-white"
+              >
+                &larr; RETURN TO OFFICER SIGN IN
+              </button>
+            </div>
+          </form>
+        ) : viewMode === 'RESET' ? (
+          /* Step 4: Reset Password Confirmation with 6-digit PIN */
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div>
+              <label className="block text-xs font-mono text-[#ffaa00] mb-2 uppercase tracking-wider text-center">
+                [ 6-DIGIT RESET AUTHORIZATION PIN ]
+              </label>
+              <div className="flex justify-between gap-1.5 sm:gap-2 max-w-xs mx-auto mb-3">
+                {otpDigits.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    ref={(el) => {
+                      digitRefs.current[idx] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onPaste={handlePaste}
+                    onChange={(e) => handleOtpChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(idx, e)}
+                    className="w-10 sm:w-11 h-12 text-center text-xl font-bold font-mono bg-[#050b14] border-2 border-[#1a2d4f] focus:border-[#ffaa00] text-[#ffaa00] focus:outline-none transition-colors"
+                    autoFocus={idx === 0}
+                    aria-label={`Digit ${idx + 1} of 6`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
+                New Access Code / Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  maxLength={50}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 6 characters"
+                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#ffaa00] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
+                Confirm New Access Code
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  maxLength={50}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new access code"
+                  className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#ffaa00] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 px-4 bg-[#ffaa00] text-black font-mono font-bold text-xs tracking-widest hover:bg-[#e69900] transition-colors disabled:opacity-50 bezel-tactical-btn uppercase flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {loading ? 'UPDATING CREDENTIALS...' : 'RESTORE CLEARANCE & SIGN IN'}
+            </button>
+
+            <div className="text-center pt-2 border-t border-[#1a2d4f]">
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setViewMode('LOGIN');
+                }}
+                className="text-xs font-mono text-[#8fa5bf] hover:text-white"
+              >
+                &larr; CANCEL & RETURN TO SIGN IN
               </button>
             </div>
           </form>
@@ -318,10 +526,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={() => {
                   sounds.playClick();
-                  setIsRegister(false);
+                  setViewMode('LOGIN');
                 }}
                 className={`flex-1 py-2 text-center font-mono text-xs font-bold transition-colors ${
-                  !isRegister
+                  viewMode === 'LOGIN'
                     ? 'border-b-2 border-[#00ff66] text-[#00ff66] bg-[#00ff66]/10'
                     : 'text-[#8fa5bf] hover:text-white'
                 }`}
@@ -332,10 +540,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={() => {
                   sounds.playClick();
-                  setIsRegister(true);
+                  setViewMode('REGISTER');
                 }}
                 className={`flex-1 py-2 text-center font-mono text-xs font-bold transition-colors ${
-                  isRegister
+                  viewMode === 'REGISTER'
                     ? 'border-b-2 border-[#00ff66] text-[#00ff66] bg-[#00ff66]/10'
                     : 'text-[#8fa5bf] hover:text-white'
                 }`}
@@ -346,7 +554,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Registration: Callsign / Username */}
-              {isRegister && (
+              {viewMode === 'REGISTER' && (
                 <div>
                   <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
                     Callsign / Username
@@ -388,16 +596,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </div>
                 <span className="text-[10px] text-[#7892b0] font-mono mt-1 block">
-                  {isRegister
+                  {viewMode === 'REGISTER'
                     ? 'A 6-digit confirmation PIN will be dispatched to this address.'
                     : 'Enter your registered email address to authorize command access.'}
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-[#8fa5bf] mb-1 uppercase tracking-wider">
-                  Access Code / Password
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-mono text-[#8fa5bf] uppercase tracking-wider">
+                    Access Code / Password
+                  </label>
+                  {viewMode === 'LOGIN' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sounds.playClick();
+                        setViewMode('FORGOT');
+                      }}
+                      className="text-[10px] font-mono text-[#ffaa00] hover:underline"
+                    >
+                      FORGOT PASSWORD?
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#7892b0] absolute left-3 top-2.5" />
                   <input
@@ -410,7 +632,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     className="w-full bg-[#050b14] border border-[#1a2d4f] focus:border-[#00ff66] pl-9 pr-3 py-2 text-base sm:text-xs font-mono text-white focus:outline-none transition-colors"
                   />
                 </div>
-                {isRegister && (
+                {viewMode === 'REGISTER' && (
                   <span className="text-[10px] text-[#7892b0] font-mono mt-1 block">
                     Minimum 6 characters required for security clearance.
                   </span>
@@ -424,7 +646,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               >
                 {loading
                   ? 'TRANSMITTING CREDENTIALS...'
-                  : isRegister
+                  : viewMode === 'REGISTER'
                   ? 'DISPATCH COMMISSION & GET PIN'
                   : 'AUTHORIZE ENTRY'}
               </button>

@@ -53,6 +53,20 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset PIN", description = "Dispatches a 6-digit PIN to the user email if the account exists, returning a generic status message.")
+    public ResponseEntity<java.util.Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(java.util.Map.of("message", "If an account exists with the provided identifier, a 6-digit reset PIN has been dispatched."));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with PIN", description = "Validates the 6-digit PIN and configures a new password for the officer account.")
+    public ResponseEntity<java.util.Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(java.util.Map.of("message", "Password has been successfully reset. Please sign in with your new credentials."));
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Get current user profile", description = "Returns authenticated officer profile details decoded from Bearer JWT.")
     public ResponseEntity<UserProfileResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {

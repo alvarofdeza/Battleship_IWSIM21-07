@@ -56,6 +56,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/verify-email",
                                 "/api/v1/auth/resend-code",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
                                 "/api/v1/leaderboard/matches",
                                 "/api/v1/leaderboard/players",
                                 "/api/v1/leaderboard/global",

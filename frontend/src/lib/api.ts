@@ -150,6 +150,26 @@ class ApiClient {
   }
 
   /**
+   * Solicita el restablecimiento de contrasena despachando un PIN de 6 digitos al correo.
+   */
+  public async forgotPassword(identifier: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ identifier }),
+    });
+  }
+
+  /**
+   * Restablece la contrasena del oficial tras validar el PIN militar de 6 digitos.
+   */
+  public async resetPassword(identifier: string, code: string, newPassword: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, code, newPassword }),
+    });
+  }
+
+  /**
    * Actualiza la contrasena del oficial tras validar la credencial actual.
    */
   public async changePassword(currentPassword: string, newPassword: string): Promise<void> {

@@ -30,8 +30,11 @@ public class UserEntity {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
-    @Column(name = "verification_otp", length = 6)
-    private String verificationOtp;
+    @Column(name = "otp_hash", length = 64)
+    private String otpHash;
+
+    @Column(name = "otp_purpose", length = 30)
+    private String otpPurpose;
 
     @Column(name = "otp_expires_at")
     private LocalDateTime otpExpiresAt;
@@ -100,12 +103,20 @@ public class UserEntity {
         this.emailVerified = emailVerified;
     }
 
-    public String getVerificationOtp() {
-        return verificationOtp;
+    public String getOtpHash() {
+        return otpHash;
     }
 
-    public void setVerificationOtp(String verificationOtp) {
-        this.verificationOtp = verificationOtp;
+    public void setOtpHash(String otpHash) {
+        this.otpHash = otpHash;
+    }
+
+    public String getOtpPurpose() {
+        return otpPurpose;
+    }
+
+    public void setOtpPurpose(String otpPurpose) {
+        this.otpPurpose = otpPurpose;
     }
 
     public LocalDateTime getOtpExpiresAt() {
@@ -122,6 +133,13 @@ public class UserEntity {
 
     public void setOtpAttempts(int otpAttempts) {
         this.otpAttempts = otpAttempts;
+    }
+
+    public void clearOtp() {
+        this.otpHash = null;
+        this.otpPurpose = null;
+        this.otpExpiresAt = null;
+        this.otpAttempts = 0;
     }
 
     public LocalDateTime getCreatedAt() {

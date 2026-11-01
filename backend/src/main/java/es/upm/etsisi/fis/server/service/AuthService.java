@@ -6,6 +6,7 @@ import es.upm.etsisi.fis.server.entity.UserRole;
 import es.upm.etsisi.fis.server.exception.ResourceNotFoundException;
 import es.upm.etsisi.fis.server.repository.UserRepository;
 import es.upm.etsisi.fis.server.security.JwtService;
+import es.upm.etsisi.fis.server.util.OtpCryptoUtils;
 import es.upm.etsisi.fis.server.util.UsernamePolicyValidator;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -97,13 +98,14 @@ public class AuthService {
                 UserRole.ROLE_USER
         );
         user.setEmailVerified(false);
-        user.setVerificationOtp(otp);
+        user.setOtpHash(OtpCryptoUtils.hashOtp(otp));
+        user.setOtpPurpose("VERIFY_EMAIL");
         user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
         user.setOtpAttempts(0);
         userRepository.save(user);
 
         // Enviar codigo OTP militar a traves del servicio de correo
-        emailService.sendVerificationCode(user.getEmail(), user.getUsername(), otp);
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), otp);
 
         UserDetails userDetails = new User(
                 user.getUsername(),
@@ -128,16 +130,19 @@ public class AuthService {
             throw new IllegalArgumentException("Email is already verified.");
         }
 
+        if (!"VERIFY_EMAIL".equals(user.getOtpPurpose())) {
+            throw new IllegalArgumentException("No pending email verification found. Please request a new code.");
+        }
+
         if (user.getOtpExpiresAt() == null || user.getOtpExpiresAt().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Verification code has expired. Please request a new code.");
         }
 
-        if (user.getVerificationOtp() == null || !user.getVerificationOtp().equals(request.getCode().trim())) {
+        if (!OtpCryptoUtils.verifyOtp(request.getCode().trim(), user.getOtpHash())) {
             int newAttempts = user.getOtpAttempts() + 1;
             user.setOtpAttempts(newAttempts);
             if (newAttempts >= 5) {
-                user.setVerificationOtp(null);
-                user.setOtpExpiresAt(null);
+                user.clearOtp();
                 userRepository.save(user);
                 throw new IllegalArgumentException("Maximum verification attempts exceeded. Please request a new code.");
             }
@@ -146,9 +151,7 @@ public class AuthService {
         }
 
         user.setEmailVerified(true);
-        user.setVerificationOtp(null);
-        user.setOtpExpiresAt(null);
-        user.setOtpAttempts(0);
+        user.clearOtp();
         userRepository.save(user);
 
         UserDetails userDetails = new User(
@@ -175,12 +178,72 @@ public class AuthService {
         }
 
         String otp = String.format("%06d", secureRandom.nextInt(1000000));
-        user.setVerificationOtp(otp);
+        user.setOtpHash(OtpCryptoUtils.hashOtp(otp));
+        user.setOtpPurpose("VERIFY_EMAIL");
         user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
         user.setOtpAttempts(0);
         userRepository.save(user);
 
-        emailService.sendVerificationCode(user.getEmail(), user.getUsername(), otp);
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), otp);
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        String identifier = request.getIdentifier().trim();
+        String identifierLower = identifier.toLowerCase();
+
+        var userOpt = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifierLower));
+
+        if (userOpt.isPresent()) {
+            UserEntity user = userOpt.get();
+            String otp = String.format("%06d", secureRandom.nextInt(1000000));
+            user.setOtpHash(OtpCryptoUtils.hashOtp(otp));
+            user.setOtpPurpose("RESET_PASSWORD");
+            user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
+            user.setOtpAttempts(0);
+            userRepository.save(user);
+
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), otp);
+        } else {
+            // Mitigacion de ataques de temporizacion: computar hash ficticio
+            OtpCryptoUtils.hashOtp("000000");
+        }
+    }
+
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
+    public void resetPassword(ResetPasswordRequest request) {
+        String identifier = request.getIdentifier().trim();
+        String identifierLower = identifier.toLowerCase();
+
+        UserEntity user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifierLower))
+                .orElseThrow(() -> new IllegalArgumentException("Invalid verification code or identifier."));
+
+        if (!"RESET_PASSWORD".equals(user.getOtpPurpose())) {
+            throw new IllegalArgumentException("No pending password reset request found. Please request a new PIN.");
+        }
+
+        if (user.getOtpExpiresAt() == null || user.getOtpExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Verification code has expired. Please request a new PIN.");
+        }
+
+        if (!OtpCryptoUtils.verifyOtp(request.getCode().trim(), user.getOtpHash())) {
+            int newAttempts = user.getOtpAttempts() + 1;
+            user.setOtpAttempts(newAttempts);
+            if (newAttempts >= 5) {
+                user.clearOtp();
+                userRepository.save(user);
+                throw new IllegalArgumentException("Maximum verification attempts exceeded. Please request a new PIN.");
+            }
+            userRepository.save(user);
+            throw new IllegalArgumentException("Invalid verification code. Attempts remaining: " + (5 - newAttempts));
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setEmailVerified(true);
+        user.clearOtp();
+        userRepository.save(user);
     }
 
     public AuthResponse login(LoginRequest request) {
