@@ -24,7 +24,7 @@ jobs:
       - name: Grant execution permission for Maven Wrapper
         run: chmod +x ./mvnw
 
-      - name: Build and execute automated test suite (78 tests)
+      - name: Build and execute automated test suite
         run: ./mvnw clean test -B
 
   frontend-validation:
@@ -45,9 +45,17 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Lint codebase
+        working-directory: ./frontend
+        run: npm run lint
+
       - name: Verify TypeScript types
         working-directory: ./frontend
         run: npx tsc --noEmit
+
+      - name: Execute Vitest unit and component tests
+        working-directory: ./frontend
+        run: npm run test
 
       - name: Build Next.js application
         working-directory: ./frontend
