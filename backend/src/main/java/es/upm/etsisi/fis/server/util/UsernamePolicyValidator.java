@@ -55,7 +55,7 @@ public final class UsernamePolicyValidator {
                 "puta", "puto", "puton", "putero", "putita", "mierda", "mierdon", "cabron",
                 "cabrona", "cabrones", "gilipollas", "gilipuertas", "subnormal", "retrasado",
                 "mongolo", "maricon", "maricona", "marica", "mariconazo", "polla", "pollon",
-                "cipote", "nabo", "coño", "coñazo", "chocho", "chochito", "pene", "vagina",
+                "cipote", "nabo", "cono", "conazo", "chocho", "chochito", "pene", "vagina",
                 "follar", "follador", "follada", "chingar", "chingada", "verga", "culiao",
                 "pendejo", "pendeja", "zorra", "zorrilla", "perra", "guarra", "hijoputa",
                 "hijadeputa", "hdp", "malparido", "carechimba", "gonorrea", "pedofilo",

@@ -15,7 +15,7 @@ import java.util.Map;
  * y servicios de monitorizacion keep-alive (UptimeRobot).
  */
 @RestController
-@Tag(name = "Health Check", description = "Verificacion del estado y disponibilidad del servidor")
+@Tag(name = "Health Check", description = "System health check and availability verification")
 public class HealthController {
 
     /**
@@ -24,7 +24,7 @@ public class HealthController {
      * @return Respuesta con codigo HTTP 200 OK y metadatos de estado del servicio.
      */
     @GetMapping("/healthz")
-    @Operation(summary = "Comprueba el estado de disponibilidad del backend")
+    @Operation(summary = "Check backend availability status", description = "Lightweight ping endpoint for uptime monitoring and container probes.")
     public ResponseEntity<Map<String, Object>> healthCheck() {
         return ResponseEntity.ok(Map.of(
                 "status", "UP",

@@ -22,7 +22,7 @@ brevo:
   api:
     key: ${BREVO_API_KEY:}
   sender:
-    email: ${BREVO_SENDER_EMAIL:fleetgrid.command@gmail.com}
+    email: ${BREVO_SENDER_EMAIL:noreply@fleetgrid.me}
 
 springdoc:
   api-docs:

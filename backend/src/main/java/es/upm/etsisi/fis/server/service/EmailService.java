@@ -34,7 +34,7 @@ public class EmailService {
     public EmailService(
             ObjectMapper objectMapper,
             @Value("${brevo.api.key:}") String brevoApiKey,
-            @Value("${brevo.sender.email:fleetgrid.command@gmail.com}") String senderEmail
+            @Value("${brevo.sender.email:noreply@fleetgrid.me}") String senderEmail
     ) {
         this(
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
@@ -53,7 +53,7 @@ public class EmailService {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.brevoApiKey = brevoApiKey != null ? brevoApiKey.trim() : "";
-        this.senderEmail = (senderEmail != null && !senderEmail.isBlank()) ? senderEmail.trim() : "fleetgrid.command@gmail.com";
+        this.senderEmail = (senderEmail != null && !senderEmail.isBlank()) ? senderEmail.trim() : "noreply@fleetgrid.me";
     }
 
     /**
@@ -65,15 +65,16 @@ public class EmailService {
      */
     public void sendVerificationCode(String toEmail, String username, String otp) {
         if (brevoApiKey.isEmpty() || brevoApiKey.equalsIgnoreCase("mock") || toEmail.endsWith("@test.com") || toEmail.endsWith("@example.com")) {
-            logger.info("[OFFLINE MOCK EMAIL] Destinatario: {} | Oficial: {} | Codigo OTP Militar: [{}]", toEmail, username, otp);
+            logger.info("[OFFLINE MOCK EMAIL] Recipient: {} | Officer: {} | Verification OTP: [{}]", toEmail, username, otp);
             return;
         }
 
         try {
             Map<String, Object> payload = Map.of(
                     "sender", Map.of("name", "FleetGrid Command", "email", senderEmail),
+                    "replyTo", Map.of("name", "FleetGrid Command", "email", "hello@fleetgrid.me"),
                     "to", List.of(Map.of("email", toEmail, "name", username)),
-                    "subject", "[FLEETGRID COMMAND] Codigo de Acceso Militar [" + otp + "]",
+                    "subject", "[FLEETGRID COMMAND] Naval Verification PIN [" + otp + "]",
                     "htmlContent", buildTacticalEmailHtml(username, otp)
             );
 
@@ -91,12 +92,12 @@ public class EmailService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                logger.info("Correo de verificacion militar entregado con exito via Brevo API a {} (Oficial: {}) - Status: {}", toEmail, username, response.statusCode());
+                logger.info("Verification email delivered successfully via Brevo API to {} (Officer: {}) - Status: {}", toEmail, username, response.statusCode());
             } else {
-                logger.error("Error al enviar correo via Brevo API a {}. Codigo HTTP: {}, Respuesta: {}", toEmail, response.statusCode(), response.body());
+                logger.error("Error sending email via Brevo API to {}. HTTP Status: {}, Response: {}", toEmail, response.statusCode(), response.body());
             }
         } catch (Exception e) {
-            logger.error("Excepcion al conectar con la API de Brevo para {}: {}", toEmail, e.getMessage());
+            logger.error("Exception connecting to Brevo API for {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -108,6 +109,7 @@ public class EmailService {
      * @return Contenido HTML estructurado.
      */
     public String buildTacticalEmailHtml(String username, String otp) {
+        String safeUsername = org.springframework.web.util.HtmlUtils.htmlEscape(username != null ? username : "Officer");
         return "<!DOCTYPE html>" +
                 "<html>" +
                 "<head><meta charset='UTF-8'></head>" +
@@ -115,14 +117,14 @@ public class EmailService {
                 "  <div style='max-width:550px; margin:0 auto; background-color:#1e293b; border:2px solid #0284c7; padding:25px; box-shadow:0 0 20px rgba(2,132,199,0.3);'>" +
                 "    <div style='border-bottom:1px solid #334155; padding-bottom:15px; margin-bottom:20px;'>" +
                 "      <h1 style='color:#38bdf8; font-size:18px; margin:0; letter-spacing:2px;'>[ FLEETGRID // FLEET COMMAND ]</h1>" +
-                "      <p style='color:#94a3b8; font-size:12px; margin:5px 0 0;'>TRANSMISION CLASIFICADA // ORDEN DE SERVICIO</p>" +
+                "      <p style='color:#94a3b8; font-size:12px; margin:5px 0 0;'>CLASSIFIED TRANSMISSION // NAVAL SERVICE DIRECTIVE</p>" +
                 "    </div>" +
-                "    <p style='font-size:14px; line-height:1.6;'>Saludos, Oficial <strong>" + username + "</strong>.</p>" +
-                "    <p style='font-size:13px; color:#cbd5e1; line-height:1.6;'>Para verificar tu expediente en el Escalafon Militar de la Armada y habilitar el registro definitivo de tus records navales en FleetGrid, introduce el siguiente codigo de 6 digitos:</p>" +
+                "    <p style='font-size:14px; line-height:1.6;'>Greetings, Officer <strong>" + safeUsername + "</strong>.</p>" +
+                "    <p style='font-size:13px; color:#cbd5e1; line-height:1.6;'>To verify your service record in the Naval Admiralty Roll and enable official score recording on FleetGrid, submit the following 6-digit access PIN:</p>" +
                 "    <div style='background-color:#0f172a; border:2px dashed #38bdf8; text-align:center; padding:18px; margin:25px 0;'>" +
                 "      <span style='font-size:32px; font-weight:bold; letter-spacing:10px; color:#38bdf8;'>" + otp + "</span>" +
                 "    </div>" +
-                "    <p style='font-size:12px; color:#94a3b8;'>Este codigo militar expirara automaticamente en <strong>10 minutos</strong>. Si tu no has solicitado esta transmision, ignora este mensaje.</p>" +
+                "    <p style='font-size:12px; color:#94a3b8;'>This military code will expire automatically in <strong>10 minutes</strong>. If you did not request this transmission, please disregard this message.</p>" +
                 "    <div style='border-top:1px solid #334155; padding-top:15px; margin-top:25px; font-size:11px; color:#64748b; text-align:center;'>" +
                 "      FLEETGRID NAVAL WARFARE PLATFORM // EST. 2026" +
                 "    </div>" +

@@ -21,7 +21,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/leaderboard")
-@Tag(name = "Leaderboard", description = "Endpoints para la obtencion de records, escalafones y expedientes de oficiales")
+@Tag(name = "Leaderboard", description = "Endpoints for Admiralty Roll rankings, high scores, and officer service records")
 public class LeaderboardController {
 
     private final LeaderboardService leaderboardService;
@@ -31,43 +31,43 @@ public class LeaderboardController {
     }
 
     @GetMapping("/matches")
-    @Operation(summary = "Top 10 mejores partidas", description = "Devuelve el ranking de las 10 mejores partidas individuales disputadas.")
+    @Operation(summary = "Top 10 matches", description = "Returns top 10 individual matches sorted by score.")
     public ResponseEntity<List<MatchScoreResponse>> getTopMatches() {
         return ResponseEntity.ok(leaderboardService.getTopMatches());
     }
 
     @GetMapping("/players")
-    @Operation(summary = "Top 10 mejores oficiales", description = "Devuelve el ranking de los 10 oficiales con mayor suma de puntos acumulados.")
+    @Operation(summary = "Top 10 officers", description = "Returns top 10 officers ordered by total career points.")
     public ResponseEntity<List<PlayerRankingResponse>> getTopPlayers() {
         return ResponseEntity.ok(leaderboardService.getTopPlayers());
     }
 
     @GetMapping("/me/matches")
-    @Operation(summary = "Top 10 partidas personales", description = "Devuelve las 10 mejores partidas del oficial autenticado.")
+    @Operation(summary = "Officer top 10 matches", description = "Returns the top 10 personal matches of the authenticated officer.")
     public ResponseEntity<List<MatchScoreResponse>> getMyBestMatches(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(leaderboardService.getUserMatches(userDetails.getUsername()));
     }
 
     @GetMapping("/me/recent")
-    @Operation(summary = "Ultimas 10 partidas del oficial", description = "Devuelve el historial reciente de las ultimas 10 partidas disputadas por el oficial autenticado.")
+    @Operation(summary = "Officer recent matches", description = "Returns the 10 most recent matches played by the authenticated officer.")
     public ResponseEntity<List<MatchScoreResponse>> getMyRecentMatches(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(leaderboardService.getUserRecentMatches(userDetails.getUsername()));
     }
 
     @GetMapping("/me/stats")
-    @Operation(summary = "Expediente militar del oficial", description = "Devuelve el balance de carrera, ratio de victorias y rango naval del oficial autenticado.")
+    @Operation(summary = "Officer service record", description = "Returns career stats, win ratio, and naval rank for the authenticated officer.")
     public ResponseEntity<UserStatsResponse> getMyStats(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(leaderboardService.getUserStats(userDetails.getUsername()));
     }
 
     @GetMapping("/personal")
-    @Operation(summary = "Top 10 puntuaciones personales (Legacy)", description = "Devuelve las 10 mejores partidas del usuario autenticado en formato basico.")
+    @Operation(summary = "Personal high scores (Legacy)", description = "Returns personal top scores in legacy compatibility format.")
     public ResponseEntity<List<ScoreResponse>> getPersonalScores(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(leaderboardService.getPersonalLeaderboard(userDetails.getUsername()));
     }
 
     @GetMapping("/global")
-    @Operation(summary = "Clasificacion global (Legacy)", description = "Devuelve el ranking global en formato basico.")
+    @Operation(summary = "Global leaderboard (Legacy)", description = "Returns global leaderboard in legacy compatibility format.")
     public ResponseEntity<List<ScoreResponse>> getGlobalScores() {
         return ResponseEntity.ok(leaderboardService.getGlobalLeaderboard());
     }

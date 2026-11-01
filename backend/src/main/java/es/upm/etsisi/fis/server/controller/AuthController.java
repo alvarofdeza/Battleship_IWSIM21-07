@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/v1/auth")
-@Tag(name = "Authentication", description = "Operaciones de autenticacion con JWT y registro de cuentas de usuario")
+@Tag(name = "Authentication", description = "Authentication endpoints with JWT tokens, email verification, and account credentials")
 public class AuthController {
 
     private final AuthService authService;
@@ -26,42 +26,42 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Registrar un nuevo usuario", description = "Crea una nueva cuenta de jugador y devuelve el token JWT inicial.")
+    @Operation(summary = "Register a new user", description = "Creates a new player account and returns an initial JWT authentication token.")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Iniciar sesion", description = "Valida las credenciales (username o email) y emite un token JWT de acceso.")
+    @Operation(summary = "Sign in", description = "Validates credentials (username or email) and issues a Bearer JWT access token.")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify-email")
-    @Operation(summary = "Verificar correo con codigo OTP", description = "Valida el PIN militar de 6 digitos y activa el registro de records en el escalafon.")
+    @Operation(summary = "Verify email with OTP code", description = "Validates the 6-digit military PIN and activates high score recording eligibility.")
     public ResponseEntity<AuthResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         AuthResponse response = authService.verifyEmail(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/resend-code")
-    @Operation(summary = "Reenviar codigo OTP", description = "Genera y envia un nuevo PIN de 6 digitos al correo del usuario.")
+    @Operation(summary = "Resend verification OTP", description = "Generates and dispatches a new 6-digit PIN to the registered email.")
     public ResponseEntity<Void> resendCode(@Valid @RequestBody ResendOtpRequest request) {
         authService.resendVerificationCode(request);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Consultar perfil actual", description = "Devuelve los datos del usuario autenticado a partir del token JWT Bearer.")
+    @Operation(summary = "Get current user profile", description = "Returns authenticated officer profile details decoded from Bearer JWT.")
     public ResponseEntity<UserProfileResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         UserProfileResponse profile = authService.getProfile(userDetails.getUsername());
         return ResponseEntity.ok(profile);
     }
 
     @PutMapping("/password")
-    @Operation(summary = "Cambiar contrasena", description = "Actualiza la contrasena del usuario autenticado tras validar la actual.")
+    @Operation(summary = "Change password", description = "Updates authenticated user password after verifying current credentials.")
     public ResponseEntity<Void> changePassword(@AuthenticationPrincipal UserDetails userDetails,
                                                @Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(userDetails.getUsername(), request);

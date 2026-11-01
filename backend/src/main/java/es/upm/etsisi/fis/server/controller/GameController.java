@@ -19,7 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/games")
-@Tag(name = "Battleship Games", description = "Endpoints de gestion y juego de partidas contra la Inteligencia Artificial")
+@Tag(name = "Battleship Games", description = "Game orchestration and tactical combat endpoints against Artificial Intelligence")
 public class GameController {
 
     private final GameService gameService;
@@ -29,7 +29,7 @@ public class GameController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear partida contra la IA", description = "Inicializa una nueva partida contra un bot en la dificultad seleccionada. Permite juego como invitado o autenticado.")
+    @Operation(summary = "Create game against AI", description = "Initializes a new match against AI bot at chosen difficulty. Supports guest and authenticated modes.")
     public ResponseEntity<GameSummaryResponse> createGame(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody(required = false) CreateGameRequest request
@@ -42,7 +42,7 @@ public class GameController {
     }
 
     @GetMapping("/{gameId}")
-    @Operation(summary = "Consultar estado de la partida", description = "Devuelve el tablero propio con barcos visibles y el tablero enemigo bajo niebla de guerra.")
+    @Operation(summary = "Get game status", description = "Returns player board with ships visible and enemy board under fog of war.")
     public ResponseEntity<GameSummaryResponse> getGame(
             @PathVariable("gameId") String gameId,
             @AuthenticationPrincipal UserDetails userDetails
@@ -53,7 +53,7 @@ public class GameController {
     }
 
     @PostMapping("/{gameId}/shots")
-    @Operation(summary = "Efectuar un disparo", description = "Envia coordenadas [row, col] de ataque. Si la partida continua, la IA efectua su contraataque de forma sincronizada.")
+    @Operation(summary = "Execute tactical shot", description = "Submits attack coordinates [row, col]. If match continues, AI executes synchronized counter-attack.")
     public ResponseEntity<ShotResponse> fireShot(
             @PathVariable("gameId") String gameId,
             @AuthenticationPrincipal UserDetails userDetails,
@@ -65,7 +65,7 @@ public class GameController {
     }
 
     @PostMapping("/{gameId}/claim")
-    @Operation(summary = "Reclamar partida de invitado", description = "Asocia una partida finalizada como invitado a la cuenta del oficial autenticado y persiste la puntuacion.")
+    @Operation(summary = "Claim guest match", description = "Associates completed guest match to authenticated officer account and records points.")
     public ResponseEntity<MatchScoreResponse> claimGame(
             @PathVariable("gameId") String gameId,
             @AuthenticationPrincipal UserDetails userDetails
@@ -75,7 +75,7 @@ public class GameController {
     }
 
     @GetMapping("/{gameId}/history")
-    @Operation(summary = "Historial de disparos de la partida", description = "Devuelve la lista cronologica de todos los ataques efectuados por ambos jugadores.")
+    @Operation(summary = "Match shot telemetry history", description = "Returns chronological list of all attacks executed by both players.")
     public ResponseEntity<List<MoveHistoryDto>> getGameHistory(@PathVariable("gameId") String gameId) {
         List<MoveHistoryDto> history = gameService.getGameHistory(gameId);
         return ResponseEntity.ok(history);

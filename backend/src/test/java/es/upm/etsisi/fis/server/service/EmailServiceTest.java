@@ -23,7 +23,7 @@ class EmailServiceTest {
     @DisplayName("Modo Mock cuando la clave de API esta vacia no realiza peticiones HTTP")
     void testMockWhenApiKeyEmpty() throws Exception {
         HttpClient mockClient = mock(HttpClient.class);
-        EmailService service = new EmailService(mockClient, new ObjectMapper(), "", "fleetgrid.command@gmail.com");
+        EmailService service = new EmailService(mockClient, new ObjectMapper(), "", "noreply@fleetgrid.me");
 
         service.sendVerificationCode("officer@naval.org", "Admiral", "123456");
 
@@ -34,7 +34,7 @@ class EmailServiceTest {
     @DisplayName("Modo Mock cuando el destinatario termina en @test.com no realiza peticiones HTTP")
     void testMockWhenTestEmail() throws Exception {
         HttpClient mockClient = mock(HttpClient.class);
-        EmailService service = new EmailService(mockClient, new ObjectMapper(), "xkeysib-mock-key", "fleetgrid.command@gmail.com");
+        EmailService service = new EmailService(mockClient, new ObjectMapper(), "xkeysib-mock-key", "noreply@fleetgrid.me");
 
         service.sendVerificationCode("cadet@test.com", "Cadet", "654321");
 
@@ -44,7 +44,7 @@ class EmailServiceTest {
     @Test
     @DisplayName("Generacion de plantilla HTML tactica contiene nombre de usuario y PIN militar")
     void testBuildTacticalEmailHtml() {
-        EmailService service = new EmailService(mock(HttpClient.class), new ObjectMapper(), "", "fleetgrid.command@gmail.com");
+        EmailService service = new EmailService(mock(HttpClient.class), new ObjectMapper(), "", "noreply@fleetgrid.me");
 
         String html = service.buildTacticalEmailHtml("Nimitz", "789012");
 
@@ -52,6 +52,7 @@ class EmailServiceTest {
         assertTrue(html.contains("Nimitz"));
         assertTrue(html.contains("789012"));
         assertTrue(html.contains("FLEETGRID // FLEET COMMAND"));
+        assertTrue(html.contains("CLASSIFIED TRANSMISSION"));
     }
 
     @Test
@@ -64,7 +65,7 @@ class EmailServiceTest {
         when(mockResponse.body()).thenReturn("{\"messageId\":\"<msg-123>\"}");
         when(mockClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(mockResponse);
 
-        EmailService service = new EmailService(mockClient, new ObjectMapper(), "xkeysib-secret-token", "fleetgrid.command@gmail.com");
+        EmailService service = new EmailService(mockClient, new ObjectMapper(), "xkeysib-secret-token", "noreply@fleetgrid.me");
         service.sendVerificationCode("realuser@fleetgrid.org", "Commander", "998877");
 
         ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
@@ -84,7 +85,7 @@ class EmailServiceTest {
         HttpClient mockClient = mock(HttpClient.class);
         when(mockClient.send(any(HttpRequest.class), any())).thenThrow(new IOException("Connection reset"));
 
-        EmailService service = new EmailService(mockClient, new ObjectMapper(), "xkeysib-secret-token", "fleetgrid.command@gmail.com");
+        EmailService service = new EmailService(mockClient, new ObjectMapper(), "xkeysib-secret-token", "noreply@fleetgrid.me");
 
         assertDoesNotThrow(() -> service.sendVerificationCode("error@fleetgrid.org", "Ensign", "112233"));
     }
