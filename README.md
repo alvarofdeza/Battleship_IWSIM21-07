@@ -23,7 +23,8 @@ Plataforma full-stack modular de combate naval táctico (FleetGrid). El proyecto
 
 ## Enlaces de Produccion en Vivo (Live Demo)
 
-* **Interfaz Tactica Web (Vercel Edge):** [https://battleship-iwsim-21-07.vercel.app/](https://battleship-iwsim-21-07.vercel.app/)
+* **Interfaz Tactica Web (Dominio Oficial):** [https://fleetgrid.me](https://fleetgrid.me) (o [https://www.fleetgrid.me](https://www.fleetgrid.me))
+* **Mirror CDN Alternativo (Vercel Edge):** [https://battleship-iwsim-21-07.vercel.app/](https://battleship-iwsim-21-07.vercel.app/)
 * **Backend REST API (Render Docker):** [https://battleship-backend-ys61.onrender.com](https://battleship-backend-ys61.onrender.com)
 * **Documentacion OpenAPI 3 / Swagger UI:** [https://battleship-backend-ys61.onrender.com/swagger-ui.html](https://battleship-backend-ys61.onrender.com/swagger-ui.html)
 * **Monitor de Salud (Health Check):** [https://battleship-backend-ys61.onrender.com/healthz](https://battleship-backend-ys61.onrender.com/healthz)
@@ -222,7 +223,7 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
      6. **Monitoring Interval:** Cada `10 minutos` o `12 minutos`.
      7. **Pausa Inteligente de Cuota:** En el panel de UptimeRobot existe un boton de alternancia (*Pause / Resume*). Con un solo clic se pausa el sondeo, permitiendo que Render se duerma tras 15 minutos de inactividad para no consumir horas cuando se trabaje en otros proyectos. *(Nota: La Status Page publica es opcional y puede eliminarse si no se desea mostrar dicho panel publico; lo indispensable para mantener activo el backend es el Monitor de sondeo en si)*.
 
-### 6.3 Frontend Web y Server Warm-Up UX (Vercel)
+### 6.3 Frontend Web y Dominio Oficial en Produccion (Vercel & fleetgrid.me)
 1. Accede a [Vercel](https://vercel.com) e inicia sesion con GitHub.
 2. Importa el repositorio `Battleship_IWSIM21-07`.
 3. En la configuracion del proyecto:
@@ -230,18 +231,24 @@ Para que la demostracion publica en internet sea **100% gratuita, permanente y s
    * **Framework Preset:** Next.js
 4. En **Environment Variables**, anade:
    * `NEXT_PUBLIC_API_URL`: `https://battleship-backend-ys61.onrender.com/api/v1`
-5. Pulsa **Deploy**. Vercel compila la aplicacion en su red Anycast Edge CDN y genera el enlace publico: [https://battleship-iwsim-21-07.vercel.app/](https://battleship-iwsim-21-07.vercel.app/).
-6. El frontend incluye telemetria de deteccion temprana: si el backend estuviese en reposo tras una pausa del monitor, muestra una animacion tactica de arranque del reactor naval mientras Render se reactiva en ~45 segundos.
+5. Pulsa **Deploy**. Vercel compila la aplicacion en su red Anycast Edge CDN y genera el enlace publico de despliegue.
+6. **Vinculacion de Dominio Personalizado (`fleetgrid.me`):**
+   * En **Settings -> Domains**, anade `fleetgrid.me` y `www.fleetgrid.me`.
+   * En el panel DNS del registrador (Namecheap), configura los registros de la zona:
+     * Registro `A`: Host `@` -> IP `216.198.79.1` (Vercel Anycast IP).
+     * Registro `CNAME`: Host `www` -> `cname.vercel-dns.com` (o redireccion a `fleetgrid.me`).
+   * Vercel emite y renueva automaticamente los certificados de seguridad SSL/TLS (HTTPS) via Let's Encrypt.
+7. El frontend incluye telemetria de deteccion temprana: si el backend estuviese en reposo tras una pausa del monitor, muestra una animacion tactica de arranque del reactor naval mientras Render se reactiva en ~45 segundos.
 
 ### 6.4 Rol de Cloudflare (Opcional)
-Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red de distribucion DNS. Su uso es altamente recomendado si se desea vincular un **dominio personalizado propio** (por ejemplo `battleship.dev` o `batallanaval.es`). Para los subdominios gratuitos (`*.vercel.app` y `*.onrender.com`), tanto Vercel como Render ya integran sus propios certificados SSL automaticos y redes CDN Anycast, por lo que Cloudflare no es obligatorio en la fase inicial.
+Cloudflare actua como proxy inverso, cortafuegos de aplicaciones web (WAF) y red de distribucion DNS. Su uso es opcional, dado que Namecheap junto con la red Anycast CDN y los certificados SSL automaticos de Vercel resuelven la conexion de `fleetgrid.me` de manera directa y optimizada.
 
 ---
 
 ## 7. Pipeline de Integracion Continua (GitHub Actions)
 
 El archivo `.github/workflows/ci.yml` ejecuta una suite automatizada de verificacion de calidad en cada `push` o `pull request` dirigido a la rama `main`:
-* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 180 tests unitarios y de integracion (`BUILD SUCCESS`).
+* **Job Backend:** Descarga JDK 17 Temurin, cachea dependencias Maven y ejecuta los 185 tests unitarios y de integracion (`BUILD SUCCESS`).
 * **Job Frontend:** Descarga Node 20, verifica tipos estricto con TypeScript (`tsc --noEmit`) y compila la aplicacion Next.js con Turbopack.
 
 ---

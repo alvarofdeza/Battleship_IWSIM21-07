@@ -62,7 +62,7 @@ Para dar por finalizado cualquier hito, se deben cumplir estrictamente las sigui
 - [x] **Motor de Dominio Puro (battleship-core):** Clean Architecture en Java 17/22, tablero 10x10, niebla de guerra, jerarquia de buques de guerra, algoritmos de IA (Basic, Hunt & Target, Heatmap probabilistico x50) y tests unitarios.
 - [x] **Backend Enterprise (battleship-backend):** Spring Boot 3.2.5, Spring Security 6 stateless con JWT, Spring Data JPA con PostgreSQL, documentacion interactiva OpenAPI 3 / Swagger UI y tests de integracion MockMvc.
 - [x] **Frontend Web Tactico (frontend):** Next.js 16 (App Router, Turbopack, React 19, Tailwind CSS v4), estetica militar CRT (Combat Information Center), dique seco de colocacion de flota, tablero reactivo y sintetizador de audio nativo Web Audio API.
-- [x] **DevOps, Docker & Cloud:** Dockerfiles multi-stage con usuarios no privilegiados, Docker Compose local, base de datos Neon PostgreSQL (Frankfurt), backend en Render, frontend en Vercel Edge CDN, pipeline CI/CD en GitHub Actions y monitor keep-alive en UptimeRobot (`/healthz`).
+- [x] **DevOps, Docker & Cloud:** Dockerfiles multi-stage con usuarios no privilegiados, Docker Compose local, base de datos Neon PostgreSQL (Frankfurt), backend en Render, frontend en Vercel Edge CDN con dominio oficial `fleetgrid.me`, pipeline CI/CD en GitHub Actions y monitor keep-alive en UptimeRobot (`/healthz`).
 
 ---
 
