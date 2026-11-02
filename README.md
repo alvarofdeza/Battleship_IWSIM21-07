@@ -1,6 +1,6 @@
 # FleetGrid Platform - Tactical Naval Command & Combat Engine
 
-[![Continuous Integration](https://github.com/alvaroaabad/Battleship_IWSIM21-07/actions/workflows/ci.yml/badge.svg)](https://github.com/alvaroaabad/Battleship_IWSIM21-07/actions/workflows/ci.yml)
+[![Continuous Integration](https://github.com/alvarofdeza/Battleship_IWSIM21-07/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarofdeza/Battleship_IWSIM21-07/actions/workflows/ci.yml)
 
 > [!NOTE]
 > **Origen Academico y Evolucion:** FleetGrid es la evolucion tecnologica y maduracion profesional del proyecto de software universitario original `Battleship_IWSIM21-07` (UPM - ETSISI).
